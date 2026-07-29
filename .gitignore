@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.DS_Store
+
+# Confidential and local data
+local/
+data/
+videos/
+input_videos/
+output_videos/
+datasets/
+weights/
+*.mp4
+*.mov
+*.avi
+*.wmv
+
+# Model files
+*.pt
+*.pth
+*.onnx
+
+# Logs and temporary outputs
+logs/
+outputs/
+*.log
