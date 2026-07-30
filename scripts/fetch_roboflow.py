@@ -54,6 +54,12 @@ NAME_MAP = {
     'worker': 'person', 'pedestrian': 'person', 'man': 'person',
     'forklift': 'forklift', 'fork-lift': 'forklift', 'forklifts': 'forklift',
     'fork lift': 'forklift', 'forklift-truck': 'forklift', 'truck': 'forklift',
+    # 'cart' is the vehicle class in hitsz/forklift-and-human. Verified visually
+    # before mapping, because J&J ruled the pallet-jack family OUT of scope
+    # (jj-rule-scope-rulings): the boxes are on sit-down counterbalance forklifts,
+    # not hand carts or pallet jacks. The word is just the annotator's choice.
+    # Re-check this if another dataset uses 'cart' for something else.
+    'cart': 'forklift',
 }
 
 BAD_LICENCE = re.compile(r'\bNC\b|non[- ]?commercial', re.I)

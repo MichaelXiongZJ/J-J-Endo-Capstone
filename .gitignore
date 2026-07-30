@@ -35,3 +35,8 @@ data/sdg_probe/
 data/calibration/sdg_*.json
 data/validation/sdg_ground_truth.json
 data/sdg_box_pickup/
+
+# Roboflow downloads and derived datasets (regenerable via scripts/fetch_roboflow.py)
+data/real/
+data/dataset_v2/
+data/dataset_v3/
