@@ -24,3 +24,6 @@ data/calibration/*.png
 
 # Notebook outputs
 *.ipynb_checkpoints/
+
+# Downloaded dataset metadata (probe artifacts, not source)
+data/sdg_warehouse_meta/

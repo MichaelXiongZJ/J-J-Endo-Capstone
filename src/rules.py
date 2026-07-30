@@ -33,10 +33,18 @@ CFG = {
     'KPT_CONF':              0.5,
 }
 
-# Keypoints checked for Rule 5. NOSE is the contentious one: a driver turning
-# their head to look behind while reversing is CORRECT behaviour, and flagging
-# it would destroy trust in the system. Pending J&J's ruling (§14 Q3), NOSE is
-# included; drop it from this tuple if they say head-turns are acceptable.
+# Keypoints checked for Rule 5.
+#
+# NOSE is in, and this is now a settled ruling from J&J (2026-07-29), not a
+# placeholder: the head is an important body part and must stay inside the
+# forklift at all times. Drivers can see behind them from inside the cab, so a
+# head-turn that puts the head outside the vehicle IS a violation.
+#
+# This reverses the guide's own advice (§12 troubleshooting: "Rule 5 fires on
+# reversing driver -> remove NOSE from the CHECK set") and inverts the staged
+# reversing head-turn clip from a negative case into a positive one. Do not
+# "fix" a reversing-driver detection by dropping NOSE — that is now the
+# specified behaviour.
 R5_CHECK_KEYPOINTS = (NOSE, L_SHOULDER, R_SHOULDER, L_WRIST, R_WRIST)
 
 

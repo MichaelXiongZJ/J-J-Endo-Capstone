@@ -130,15 +130,33 @@ Three, all deliberate and documented in the relevant module:
    `rfdetr.assets.coco_classes`, and `optimize_for_inference()` → `inference()`.
    `RFDETRBase` still works but is removed in rfdetr 2.0.0, hence the version pin.
 
-## Open questions blocking work
+## Rulings from J&J (2026-07-29)
 
-See `context.md` §9. The two that block the most:
+Two of `context.md` §9's blocking questions are now answered. **Both override the
+guide**, which assumed the opposite in each case.
 
-- **Do pallet jacks and tuggers count as Rule-3 vehicles?** Blocks labeling;
-  relabeling is expensive.
-- **Does a head-turn while reversing violate Rule 5?** Determines whether `NOSE`
-  stays in `R5_CHECK_KEYPOINTS`. Flagging correct reversing behaviour would
-  destroy trust in the system.
+**Q1 — Pallet jacks and tuggers are OUT OF SCOPE.** They do not count as Rule-3
+vehicles. This reverses guide §4.1 convention 1 ("until answered, label them
+`forklift`"). Labeling convention is now:
+
+> Label `forklift` only for sit-down / stand-on powered forklifts. Do **not**
+> label pallet jacks, tuggers, or hand trucks at all — not as `forklift`, not as
+> a separate class. Leave them unlabeled background.
+
+**Q3 — A head-turn while reversing IS a Rule 5 violation.** The head is an
+important body part and must stay inside the forklift at all times; drivers can
+see behind them from inside the cab. Consequences:
+
+- `NOSE` **stays** in `R5_CHECK_KEYPOINTS` ([src/rules.py](src/rules.py)).
+- Guide §12's troubleshooting row — *"Rule 5 fires on reversing driver → remove
+  `NOSE` from the CHECK set"* — is now **wrong**. That is the specified behaviour,
+  not a bug.
+- The staged reversing head-turn clip flips from the set's most important
+  *negative* to a *positive*, with a new paired negative (head stays inside).
+  Both are in `data/validation/ground_truth.example.json`.
+
+Still open, and now the main blocker: **actual forklift length** (sets the
+3-vehicle-length radius; 2.7 m is a placeholder), plus the footage questions.
 
 ## Privacy
 

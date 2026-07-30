@@ -33,9 +33,17 @@
       ]
     },
     {
-      "video": "r5_reversing_headturn_01.mp4",
+      "video": "r5_reversing_headturn_head_outside_01.mp4",
+      "violations": [
+        {"rule": 5, "start_s": 3.5, "end_s": 7.0,
+         "note": "driver turns head to look behind while reversing, putting head OUTSIDE the vehicle"}
+      ],
+      "note": "POSITIVE. J&J ruled 2026-07-29 that the head must stay inside the forklift at all times — drivers can see behind them from inside the cab. This reverses the guide's assumption (context.md §6.3 and §12 both treat this as a must-not-fire case) and is why NOSE stays in R5_CHECK_KEYPOINTS."
+    },
+    {
+      "video": "r5_reversing_head_inside_01.mp4",
       "violations": [],
-      "note": "NEGATIVE and the most important clip in the set: driver turns head to look behind while reversing. This is CORRECT behaviour. Any Rule 5 event here is a false positive that would destroy trust in the system. See context.md §6.3 and §9 Q3."
+      "note": "NEGATIVE, and now the paired control for the clip above: driver reverses and looks behind while keeping their head inside the cab. Film both from the same camera position — the difference between them is precisely what R5_CAB_FRACTIONS has to resolve, and it is the tightest tolerance Rule 5 has to hit."
     },
     {
       "video": "r4_walks_off_walkway_01.mp4",
