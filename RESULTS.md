@@ -3,14 +3,14 @@
 Measured outcomes for the warehouse safety CV prototype. Item 6 of the Definition
 of Done (`context.md` §12).
 
-**One-line summary:** the perception stack and Rule 3 work and are measured;
-Rule 5 — the rule J&J cares most about — has validated *logic* but **no
-validation data**, and closing that is the single most important next step.
+**One-line summary:** the perception stack and Rule 3 work and are measured on
+real footage; **Rule 5 does not work**, because the detector cannot see seated
+drivers — see §0, which is the finding that matters most.
 
-Everything below is measured on **synthetic** footage (NVIDIA PhysicalAI
-SDG-Warehouse). No J&J footage has been available at any point. Numbers are real
-but the domain is narrow, and §10's staged clips remain mandatory before any of
-this is quoted to a safety team.
+Results come from synthetic footage (NVIDIA PhysicalAI SDG-Warehouse) and three
+real CC BY 4.0 datasets from Roboflow Universe. No J&J footage has been available
+at any point, so §10's staged clips remain mandatory before any of this is quoted
+to a safety team.
 
 ---
 
@@ -70,28 +70,17 @@ Fine-tuned RF-DETR (Apache-2.0), one model for `person` + `forklift`.
 | Wall time (RTX 3070) | 52.8 min | 100.3 min | 221.9 min |
 
 **`rfdetr_real` is the only meaningful number.** v1 and v2 scored ~0.96 against
-synthetic validation drawn from the same simulator as their training data � an
+synthetic validation drawn from the same simulator as their training data — an
 easy, in-distribution task. 0.820 against a validation set containing 667 real
 CCTV images is the first figure in this project that reflects anything like
 deployment. The drop is not a regression; it is the synthetic numbers being
 exposed as optimistic.
 
-And per �0, that 0.820 hides a total failure on seated drivers.
+And per §0, that 0.820 hides a total failure on seated drivers.
 
-§4.6's acceptance bar is person ≥ 0.80 and forklift ≥ 0.60 mAP50. Both models
-clear it comfortably.
-
-**v1 and v2 are not directly comparable** — they have different validation sets
-(v2's includes `box_pickup` aisle scenes, which are visually unlike the near-miss
-floor shots). v2's slightly lower mAP reflects a harder, more varied validation
-set, not a worse model. Neither is "better" in a way that matters yet; both are
-measuring an easy in-distribution task.
-
-**Do not read these as a forecast of J&J performance.** The task here is easy:
-one warehouse, two object classes, clean synthetic renders, no clutter or
-occlusion variety, and a validation split drawn from the same simulator. The
-honest claim is *"the training pipeline works and the data is learnable"*, not
-*"the detector is 97% accurate"*.
+§4.6's acceptance bar is person ≥ 0.80 and forklift ≥ 0.60 mAP50. All three
+models clear it — which is a reminder that mAP is not the whole story, since the
+model that clears it most comfortably is the one that cannot see a driver.
 
 Split is **by run**, never by frame (§4.2) — including across the 5 ceiling
 cameras of a run, which show the same moment from different angles and would
@@ -138,7 +127,11 @@ will be the tape measure, not this code.
 
 ## 4. Rule 5 — driver's body outside the vehicle
 
-**Logic validated. Accuracy unmeasured. This is the project's biggest gap.**
+**Logic validated. Input broken (§0). Accuracy unmeasured.**
+
+The rule logic below is correct and tested. It is also, at present, unreachable:
+§0 shows the detector finds 0/16 seated drivers, and Rule 5 needs a detected
+driver before any of this runs.
 
 The §10 validation matrix is encoded as executable scenarios
 (`tests/test_rule5_scenarios.py`), all passing:
