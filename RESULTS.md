@@ -139,13 +139,31 @@ mostly on **stand-on reach trucks**, because that is what the near-miss scenario
 provides. A detector trained on reach trucks alone may not recognise J&J's
 vehicles — different silhouette entirely.
 
-Partly mitigated in v2: sit-down forklift labels were recovered from `box_pickup`
-instance segmentation (`scripts/sdg_extract_forklifts.py`), since that scenario
-renders the right vehicle but leaves it unlabeled. Yield was poor — only 2 of 20
-cameras show one — so v2 contains a modest number of sit-down examples from a
-small number of parked instances.
+Attempted mitigation in v2: sit-down forklift labels were recovered from
+`box_pickup` instance segmentation (`scripts/sdg_extract_forklifts.py`), since
+that scenario renders the right vehicle but leaves it unlabeled. The resulting
+coverage is too thin to matter:
 
-**This gap is not closed and cannot be closed with this dataset.**
+| Split | nearmiss (reach truck) images | box_pickup images | **sit-down forklift boxes** |
+|---|---|---|---|
+| train | 1123 | 210 | **28** |
+| valid | 650 | 70 | **0** |
+
+Only 2 of 20 cameras show a forklift at all — in the box-picking aisles it is
+usually out of frame — and it is parked, so those 28 boxes come from **2 static
+viewpoints of 2 parked vehicles**. Worse, the validation split contains **zero**,
+so sit-down forklift accuracy is not merely low, it is **unmeasurable**.
+
+**Treat the vehicle-type gap as open.** v2 is not meaningfully better than v1 for
+J&J's equipment, and no amount of additional SDG data will fix it: the scenario
+that renders the right forklift does not label it, and the scenario that labels
+its vehicle renders the wrong one.
+
+A secondary risk worth recording: the extractor ignores masks under 1500 px, so a
+*distant* forklift could be present-but-unlabeled in a `box_pickup` frame, which
+is the poisoning case. The 18 cameras with no forklift were confirmed empty by
+segmentation (authoritative, since it covers every pixel), so the exposure is
+limited to small/distant instances.
 
 ## 7. Known limitations
 
