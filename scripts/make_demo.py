@@ -40,8 +40,20 @@ def pick_clips(truth_path, root, calib_dir, n):
             calib = os.path.join(calib_dir, f'sdg_{run_id[:20]}_{cam}.json')
             if label in best and os.path.exists(calib):
                 out.append((best[label], run_dir, cam, calib, label))
-    out.sort(reverse=True)
-    return out[:n]
+    out.sort(key=lambda r: -r[0])
+
+    # At most one camera per run. The 5 ceiling cameras of a run show the SAME
+    # moment from different angles, so taking the top 5 by duration yields five
+    # views of one scene — which demos far less than five different scenes.
+    picked, seen = [], set()
+    for row in out:
+        if row[1] in seen:
+            continue
+        seen.add(row[1])
+        picked.append(row)
+        if len(picked) == n:
+            break
+    return picked
 
 
 def concat(paths, dest, fps=10):

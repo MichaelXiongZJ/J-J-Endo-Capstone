@@ -67,7 +67,11 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
                                  cv2.VideoWriter_fourcc(*'mp4v'), CFG['PROC_FPS'], (W, H))
 
     motion, r1, r4, r5 = MotionState(), Rule1State(), Rule4State(), Rule5State()
-    box_ann, lab_ann = sv.BoxAnnotator(), sv.LabelAnnotator()
+    # supervision's defaults are tuned for ~640px images and are illegible at
+    # 1080p, which matters because the annotated video is a deliverable people
+    # actually watch (Definition of Done item 5).
+    box_ann = sv.BoxAnnotator(thickness=3)
+    lab_ann = sv.LabelAnnotator(text_scale=0.8, text_thickness=2, text_padding=6)
     agg = EventAggregator(f'{outdir}/events', geom.camera_id,
                           video_label or os.path.basename(video),
                           save_frames=save_evidence)
