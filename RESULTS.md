@@ -18,18 +18,24 @@ this is quoted to a safety team.
 
 Fine-tuned RF-DETR (Apache-2.0), one model for `person` + `forklift`.
 
-| | v1 | v2 |
+| | v1 (nearmiss only) | v2 (+ box_pickup) |
 |---|---|---|
 | Training images | 1040 | 2053 |
 | Runs (train / valid) | 14 / 7 | 26 / 14 |
-| Best EMA mAP50:95 | **0.967** | see `models/rfdetr_v2/metrics.csv` |
-| Final mAP50 | 0.994 | |
-| forklift AP50:95 | 0.979 | |
-| person AP50:95 | 0.891 | |
-| Wall time (RTX 3070) | 52.8 min | |
+| Best EMA mAP50:95 | **0.967** | **0.962** |
+| Final-epoch mAP50 | 0.994 | 0.985 |
+| forklift AP50:95 | 0.979 | 0.973 |
+| person AP50:95 | 0.891 | 0.896 |
+| Wall time (RTX 3070) | 52.8 min | 100.3 min |
 
-§4.6's acceptance bar is person ≥ 0.80 and forklift ≥ 0.60 mAP50. Both clear it
-comfortably.
+§4.6's acceptance bar is person ≥ 0.80 and forklift ≥ 0.60 mAP50. Both models
+clear it comfortably.
+
+**v1 and v2 are not directly comparable** — they have different validation sets
+(v2's includes `box_pickup` aisle scenes, which are visually unlike the near-miss
+floor shots). v2's slightly lower mAP reflects a harder, more varied validation
+set, not a worse model. Neither is "better" in a way that matters yet; both are
+measuring an easy in-distribution task.
 
 **Do not read these as a forecast of J&J performance.** The task here is easy:
 one warehouse, two object classes, clean synthetic renders, no clutter or
@@ -49,7 +55,8 @@ clips**.
 | Detector | TP | FP | FN | Precision | Recall |
 |---|---|---|---|---|---|
 | Perfect (simulator boxes) | 44 | 0 | 0 | **1.000** | **1.000** |
-| Fine-tuned RF-DETR, end to end | 178 | 0 | 0 | **1.000** | **1.000** |
+| Fine-tuned RF-DETR v1, end to end | 178 | 0 | 0 | **1.000** | **1.000** |
+| Fine-tuned RF-DETR v2, end to end | 178 | 0 | 0 | **1.000** | **1.000** |
 
 PoC target is precision ≥ 0.8. Both runs pass with margin.
 

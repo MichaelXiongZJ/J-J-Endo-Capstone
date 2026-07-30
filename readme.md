@@ -123,14 +123,21 @@ into a scored false positive.
 
 ## Status
 
-| Phase | State |
+See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps.
+
+| Definition of Done (context.md §12) | State |
 |---|---|
-| Scaffold, geometry, tracking, all 4 rules, pipeline, event output | **Done, tested** |
-| Validation scorer (§10 precision/recall) | **Done, tested** |
-| Training data — 560 labeled images from SDG-Warehouse | **Done** |
-| Rule 3 validated with a perfect detector (P=1.00, R=1.00) | **Done** |
-| Fine-tune RF-DETR on the synthetic set | **Ready to run** (local 3070 or Colab T4) |
-| Rules 5/4/1 validation, real footage, domain-shift fine-tune | **Blocked on J&J data** |
+| 1. Fine-tuned RF-DETR with measured mAP | **Done** — mAP50:95 0.967, forklift AP 0.979, person AP 0.891 |
+| 2. Pipeline emitting `events.jsonl` + evidence frames | **Done** |
+| 3. Rules 3 and 5 validated at precision ≥ 0.8 | **Rule 3 done** (P=1.00, R=1.00 over 178 clips). **Rule 5: logic validated, no data** |
+| 4. Rules 4 and 1 implemented | **Done**, unexercised on real data |
+| 5. Annotated demo video | **Done** — `outputs/demo/demo.mp4` |
+| 6. Write-up | **Done** — [RESULTS.md](RESULTS.md) |
+
+**The honest headline:** every number above is measured on synthetic footage, and
+**Rule 5 — the rule J&J cares most about — has no validation data**, because no
+SDG-Warehouse scenario contains a driver seated in a forklift. Closing that needs
+staged clips (§10), which is the top priority.
 
 The rule logic is verified end-to-end against a synthetic clip with exact
 arithmetic ground truth (`scripts/make_synthetic_clip.py`). **That is a
