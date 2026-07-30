@@ -140,7 +140,10 @@ def export(runs, out_root, stride, val_fraction, seed, max_frames_per_clip):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--root', default='data/sdg')
+    ap.add_argument('--root', nargs='+', default=['data/sdg'],
+                    help='one or more source roots. Pass both scenarios to mix '
+                         'reach trucks (nearmiss) with the sit-down counterbalance '
+                         'forklift recovered from box_pickup segmentation')
     ap.add_argument('--out', default='data/dataset')
     ap.add_argument('--stride', type=int, default=30,
                     help='frames between samples (30 = one per second)')
@@ -150,10 +153,14 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     args = ap.parse_args()
 
-    runs = find_runs(args.root)
+    runs = []
+    for root in args.root:
+        found = find_runs(root)
+        print(f'{root}: {len(found)} runs, {sum(len(c) for _, c in found)} clips')
+        runs.extend(found)
     if not runs:
-        raise SystemExit(f'no runs under {args.root}/ — run scripts.fetch_sdg first')
-    print(f'{len(runs)} runs, {sum(len(c) for _, c in runs)} clips')
+        raise SystemExit(f'no runs under {args.root} — run scripts.fetch_sdg first')
+    print(f'total {len(runs)} runs, {sum(len(c) for _, c in runs)} clips')
 
     stats, split_of = export(runs, args.out, args.stride, args.val_fraction,
                              args.seed, args.max_frames_per_clip)
