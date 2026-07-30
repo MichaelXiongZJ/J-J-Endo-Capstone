@@ -14,19 +14,69 @@ this is quoted to a safety team.
 
 ---
 
+## 0. The finding that blocks the MVP
+
+**The detector cannot see seated forklift drivers, and fine-tuning is what
+destroyed that ability.**
+
+Measured on 16 clean validation images from `forklift2`, every one containing a
+plainly visible driver in a hard hat and hi-vis vest:
+
+| Model | Forklifts with the driver detected |
+|---|---|
+| COCO-pretrained RF-DETR (before any fine-tuning) | **5 / 16** |
+| Our fine-tuned detector (`rfdetr_real`, mAP50:95 0.820) | **0 / 16** |
+
+The fine-tuned model finds every forklift and none of their drivers. The COCO
+model it started from could find some, with no false positives.
+
+**Cause:** the real datasets label standing pedestrians but not seated drivers —
+only 4.9% of `forklift2`'s forklift boxes contain a labeled person, against a
+driver visibly present in most of them. In training, an unlabeled object is
+supervised as *background*, so we spent 222 GPU-minutes teaching the model that a
+seated driver is not a person.
+
+This is catastrophic forgetting (context.md §5), but caused by **label gaps
+rather than learning rate**, so the guide's remedy — lower `lr` to 5e-5 — would
+not touch it.
+
+**Consequence for Rule 5:** Rule 5 identifies the driver, then tests whether
+their keypoints leave the cab. With no driver detection there is no driver to
+test, so Rule 5 cannot function on real footage with this detector, regardless of
+how good its rule logic is. **The MVP is not met.**
+
+**Fix:** label the drivers. The images are already right — real factory, J&J's
+exact Toyota counterbalance forklifts, drivers present. Only one class in one
+region is missing. Roughly 800 unique source images sit behind the ~2600
+augmented copies. COCO pseudo-labelling recovers about 31% of them accurately
+(`scripts/label_drivers.py`); the rest needs human labelling, which is a few
+hours across five people and exactly the task §4.1 assumes.
+
+Until that is done, every Rule 5 number in this document describes logic that has
+no working input.
+
 ## 1. Detector
 
 Fine-tuned RF-DETR (Apache-2.0), one model for `person` + `forklift`.
 
-| | v1 (nearmiss only) | v2 (+ box_pickup) |
-|---|---|---|
-| Training images | 1040 | 2053 |
-| Runs (train / valid) | 14 / 7 | 26 / 14 |
-| Best EMA mAP50:95 | **0.967** | **0.962** |
-| Final-epoch mAP50 | 0.994 | 0.985 |
-| forklift AP50:95 | 0.979 | 0.973 |
-| person AP50:95 | 0.891 | 0.896 |
-| Wall time (RTX 3070) | 52.8 min | 100.3 min |
+| | v1 (synthetic) | v2 (+ box_pickup) | **real (+ 2 real datasets)** |
+|---|---|---|---|
+| Training images | 1040 | 2053 | **5886 (4553 real)** |
+| Validation images | 350 | 720 | **1387 (667 real)** |
+| Best EMA mAP50:95 | 0.967 | 0.962 | **0.820** |
+| Final-epoch mAP50 | 0.994 | 0.985 | 0.968 |
+| forklift AP50:95 | 0.979 | 0.973 | **0.830** |
+| person AP50:95 | 0.891 | 0.896 | **0.777** |
+| Wall time (RTX 3070) | 52.8 min | 100.3 min | 221.9 min |
+
+**`rfdetr_real` is the only meaningful number.** v1 and v2 scored ~0.96 against
+synthetic validation drawn from the same simulator as their training data � an
+easy, in-distribution task. 0.820 against a validation set containing 667 real
+CCTV images is the first figure in this project that reflects anything like
+deployment. The drop is not a regression; it is the synthetic numbers being
+exposed as optimistic.
+
+And per �0, that 0.820 hides a total failure on seated drivers.
 
 §4.6's acceptance bar is person ≥ 0.80 and forklift ≥ 0.60 mAP50. Both models
 clear it comfortably.
