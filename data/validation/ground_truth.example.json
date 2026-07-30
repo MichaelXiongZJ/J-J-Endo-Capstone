@@ -1,0 +1,68 @@
+{
+  "_comment": [
+    "Template for staged-clip ground truth (implementation guide §10).",
+    "Copy to ground_truth.json and fill in as you film. Note times while filming —",
+    "reconstructing them afterwards from video is slow and error-prone.",
+    "Aim for 20-30 clips. Clips with an EMPTY violations list are negative clips,",
+    "and they are the most valuable ones you can film: precision is unmeasurable",
+    "without them. The reversing head-turn clip is the make-or-break case."
+  ],
+  "clips": [
+    {
+      "video": "r3_approach_10m_to_3m_01.mp4",
+      "violations": [
+        {"rule": 3, "start_s": 6.5, "end_s": 14.0,
+         "note": "walks from 10 m to 3 m of a slowly moving forklift; should fire below 8.1 m"}
+      ]
+    },
+    {
+      "video": "r3_safe_distance_only_01.mp4",
+      "violations": [],
+      "note": "NEGATIVE: person stays beyond 10 m throughout"
+    },
+    {
+      "video": "r5_lean_out_arm_only_01.mp4",
+      "violations": [
+        {"rule": 5, "start_s": 3.0, "end_s": 6.0, "note": "arm only"}
+      ]
+    },
+    {
+      "video": "r5_lean_out_torso_01.mp4",
+      "violations": [
+        {"rule": 5, "start_s": 4.5, "end_s": 9.0, "note": "torso well outside cab"}
+      ]
+    },
+    {
+      "video": "r5_reversing_headturn_01.mp4",
+      "violations": [],
+      "note": "NEGATIVE and the most important clip in the set: driver turns head to look behind while reversing. This is CORRECT behaviour. Any Rule 5 event here is a false positive that would destroy trust in the system. See context.md §6.3 and §9 Q3."
+    },
+    {
+      "video": "r4_walks_off_walkway_01.mp4",
+      "violations": [
+        {"rule": 4, "start_s": 2.0, "end_s": 11.0, "note": "walks beside the marked walkway"}
+      ]
+    },
+    {
+      "video": "r4_stays_on_walkway_01.mp4",
+      "violations": [],
+      "note": "NEGATIVE: full traverse inside the walkway"
+    },
+    {
+      "video": "r1_phone_to_ear_01.mp4",
+      "violations": [
+        {"rule": 1, "start_s": 3.0, "end_s": 12.0, "note": "phone held to ear"}
+      ]
+    },
+    {
+      "video": "r1_scratches_head_01.mp4",
+      "violations": [],
+      "note": "NEGATIVE: Rule 1's false-positive twin. Also try adjusting a hard hat and holding a two-way radio."
+    },
+    {
+      "video": "plain_safe_operation_01.mp4",
+      "violations": [],
+      "note": "NEGATIVE: normal operation, nothing should fire at all"
+    }
+  ]
+}

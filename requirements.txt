@@ -1,0 +1,25 @@
+# Warehouse Safety CV — prototype dependencies
+# All components are permissively licensed (Apache-2.0 / MIT) per context.md §3.
+# NOTE: Ultralytics YOLO is deliberately absent — AGPL-3.0 is incompatible with
+# the J&J commercial handoff (context.md §7.1). Do not add it, even for testing.
+
+# Versions below are what the pipeline was verified against on 2026-07-29.
+# Upper bounds are deliberate: each one guards a call the project relies on
+# that upstream has already scheduled for removal. See src/detector.py and
+# src/tracking.py for the specific drift each pin covers.
+
+rfdetr>=1.9.0,<2.0.0  # Apache-2.0 — detector. RFDETRBase is removed in 2.0.0.
+supervision>=0.29,<0.30   # MIT — Detections container + annotators.
+trackers>=2.5.0       # Apache-2.0 — ByteTrackTracker; sv.ByteTrack goes in sv 0.30.
+rtmlib                # Apache-2.0 — RTMPose via ONNX
+onnxruntime-gpu       # MIT — swap for `onnxruntime` on CPU-only machines
+opencv-python
+numpy
+matplotlib
+
+# torch/torchvision are installed separately so the CUDA build is selected:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+# On Colab, torch is preinstalled — do not reinstall it.
+
+# dev only
+pytest

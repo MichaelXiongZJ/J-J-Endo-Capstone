@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Data and model weights — these live in Google Drive, never in git.
+# Footage may contain identifiable workers (context.md §10).
+data/raw_videos/*
+data/frames/*
+data/dataset/*
+models/*
+outputs/*
+!**/.gitkeep
+
+# Calibration configs ARE tracked — they are small, hand-authored, and
+# reproducing them costs ~10 min of tape-measure work per camera.
+!data/calibration/
+!data/calibration/*.json
+
+# Keep the reference frames out of git though (they are footage).
+data/calibration/*.jpg
+data/calibration/*.png
+
+# Notebook outputs
+*.ipynb_checkpoints/
