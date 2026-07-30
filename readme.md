@@ -38,14 +38,84 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 Verify: `python -m pytest -q` → 67 tests, no network or GPU needed.
 
+## Synthetic data: NVIDIA PhysicalAI SDG-Warehouse
+
+Real warehouse CCTV of people near forklifts is effectively unobtainable, so the
+detector's training data and Rule 3's validation set come from NVIDIA's
+[SDG-Warehouse](https://huggingface.co/datasets/nvidia/PhysicalAI-WorldModel-Synthetic-Warehouse-Operations-Scenes)
+simulation (OpenMDW 1.1 — **commercial use permitted**, so the licensing posture
+holds).
+
+```bash
+python -m scripts.fetch_sdg --shards 1 2 3 4   # ~270 MiB/shard, 3 runs each
+python -m scripts.sdg_calibration              # exact calibration + Rule 3 ground truth
+python -m scripts.sdg_to_coco                  # -> data/dataset/, split by run
+python -m scripts.sdg_validate_rules           # score rules with a perfect detector
+```
+
+We read the **`artifacts/` tier, not `rgb/`**: it ships `rgb.mp4` alongside the
+annotations, so pixels and boxes provably come from the same render (verified
+pixel-exact). The `rgb/` tier is Cosmos world-model output whose alignment with
+these boxes is unverified. Only `ceiling_*` cameras are kept — the elevated
+CCTV-like viewpoint that matches where J&J's cameras are. The tars are read with
+HTTP random access, so we pull 272 MiB per shard instead of 4.6 GiB.
+
+### What this buys us
+
+**Calibration without a tape measure, and a way to grade our own homography.**
+The simulator's camera matrices project known floor points exactly, so §6.1's
+manual clicking-and-measuring is replaced by generated correspondences — and we
+can compare `CameraGeometry.to_floor()` against exact truth. Measured error:
+**0.0001 m mean, 0.0001 m worst across 44 clips.** Nothing else in the project
+can check this; on real footage there is no truth to compare against.
+
+**Rule 3 measured with a perfect detector.** Feeding the simulator's exact boxes
+through the real pipeline isolates rule logic from detector error, setting the
+ceiling on achievable accuracy:
+
+| | TP | FP | FN | Precision | Recall |
+|---|---|---|---|---|---|
+| Rule 3, 44 clips | 44 | 0 | 0 | **1.000** | **1.000** |
+
+So the geometry, driver association, duration gates, and event aggregation are
+sound. All remaining risk sits in detection quality and domain shift.
+
+**560 labeled images** (`data/dataset/`, 8 train runs / 4 valid runs, split by
+run per §4.2), replacing most of Phase 3's labeling effort.
+
+### What it does not cover — read before trusting it
+
+1. **The vehicles are stand-on reach trucks with no enclosed cab**, not sit-down
+   counterbalance forklifts. So **Rule 5 cannot be exercised at all** here, and
+   the vehicle type sits uncomfortably close to the pallet-jack family J&J just
+   ruled out of scope. **Worth confirming with J&J.**
+2. **No annotated driver.** Every `character` is a pedestrian, so this data
+   cannot validate driver association — which is load-bearing for Rules 3 and 5.
+3. **No walkways or phone use**, so Rules 4 and 1 are unexercised.
+4. **No negative clips**: every near-miss clip contains a genuine violation.
+   Precision is still measured (events outside a ground-truth interval count as
+   FP), but for true negatives fetch the routine-operations scenario by setting
+   `SCENARIO = 'warehouse_box_pickup'` in `scripts/fetch_sdg.py`.
+5. **Domain shift is real** — CG humans, no hi-vis PPE, simulated lighting. Treat
+   this as pretraining to be fine-tuned on real J&J footage, not as a substitute.
+
+A dataset defect worth knowing: `metro_agent_data.world_position` is **frozen at
+its initial value in ~40% of runs** while the boxes move correctly. We read
+positions from `bounding_box_3d_fast.transform` instead, which is correct in
+every run checked and agrees exactly where both work. Trusting `world_position`
+silently marks those runs "vehicle never moved" and turns every real violation
+into a scored false positive.
+
 ## Status
 
 | Phase | State |
 |---|---|
 | Scaffold, geometry, tracking, all 4 rules, pipeline, event output | **Done, tested** |
 | Validation scorer (§10 precision/recall) | **Done, tested** |
-| Colab notebooks (baseline, fine-tune) | **Written, unrun** — need footage |
-| Footage, labeling, fine-tuned weights, real calibration | **Blocked on J&J data** |
+| Training data — 560 labeled images from SDG-Warehouse | **Done** |
+| Rule 3 validated with a perfect detector (P=1.00, R=1.00) | **Done** |
+| Fine-tune RF-DETR on the synthetic set | **Ready to run** (local 3070 or Colab T4) |
+| Rules 5/4/1 validation, real footage, domain-shift fine-tune | **Blocked on J&J data** |
 
 The rule logic is verified end-to-end against a synthetic clip with exact
 arithmetic ground truth (`scripts/make_synthetic_clip.py`). **That is a

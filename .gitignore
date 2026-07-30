@@ -27,3 +27,10 @@ data/calibration/*.png
 
 # Downloaded dataset metadata (probe artifacts, not source)
 data/sdg_warehouse_meta/
+
+# SDG-Warehouse slice: fetched clips and everything derived from them.
+# All regenerable via scripts/fetch_sdg.py + sdg_calibration.py + sdg_to_coco.py.
+data/sdg/
+data/sdg_probe/
+data/calibration/sdg_*.json
+data/validation/sdg_ground_truth.json

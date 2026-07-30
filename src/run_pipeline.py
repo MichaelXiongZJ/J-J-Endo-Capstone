@@ -32,8 +32,14 @@ PERSON_ID, FORKLIFT_ID = 2, 1
 
 def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSON_ID,
         forklift_id=FORKLIFT_ID, use_pose=True, max_frames=None, write_video=True,
-        threshold=0.5, save_evidence=True, verbose=True):
-    """Core loop, decoupled from argument parsing so tests can drive it directly."""
+        threshold=0.5, save_evidence=True, verbose=True, video_label=None):
+    """Core loop, decoupled from argument parsing so tests can drive it directly.
+
+    video_label overrides the `video` field written into events. Needed when many
+    clips share a basename (the SDG slice stores every run's cameras as
+    `ceiling_00.rgb.mp4`), since score_events matches events to ground truth by
+    clip name and would otherwise merge every run into one.
+    """
     os.makedirs(f'{outdir}/events', exist_ok=True)
     os.makedirs(f'{outdir}/videos', exist_ok=True)
 
@@ -62,7 +68,8 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
 
     motion, r1, r4, r5 = MotionState(), Rule1State(), Rule4State(), Rule5State()
     box_ann, lab_ann = sv.BoxAnnotator(), sv.LabelAnnotator()
-    agg = EventAggregator(f'{outdir}/events', geom.camera_id, os.path.basename(video),
+    agg = EventAggregator(f'{outdir}/events', geom.camera_id,
+                          video_label or os.path.basename(video),
                           save_frames=save_evidence)
 
     frame_idx = processed = 0
