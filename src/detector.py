@@ -33,6 +33,33 @@ def coco_class_names():
     return COCO_CLASSES
 
 
+def model_class_ids(dataset_dir='data/dataset', split='valid'):
+    """{name: predicted class_id} for a model fine-tuned on this dataset.
+
+    A fine-tuned RF-DETR does NOT predict your COCO category ids. It re-indexes
+    them to 0-based contiguous positions in sorted-id order, so a dataset with
+    categories {1: forklift, 2: person} yields predictions 0 = forklift,
+    1 = person — everything shifted down by one.
+
+    This bites harder than the §4.4 warning suggests. §4.4 tells you to read ids
+    from the dataset JSON rather than from memory, and doing exactly that still
+    gives the wrong answer at inference, because the shift happens inside the
+    model. The failure is silent: the detector reports excellent mAP (it is
+    right, in its own indexing) while the pipeline matches nothing and emits zero
+    events.
+
+    Verified empirically by IoU-matching predictions against ground truth over 79
+    objects: predicted 0 -> forklift, predicted 1 -> person.
+    """
+    import json
+    import os
+
+    path = os.path.join(dataset_dir, split, '_annotations.coco.json')
+    with open(path) as f:
+        cats = json.load(f)['categories']
+    return {c['name']: i for i, c in enumerate(sorted(cats, key=lambda c: c['id']))}
+
+
 class RFDetrDetector:
     """Fine-tuned RF-DETR. Returns sv.Detections; class_id per your dataset (§4.4).
 

@@ -81,13 +81,21 @@ def main():
                          'simulator ground-truth boxes (the perfect-detector '
                          'ceiling); supply it for the honest end-to-end number')
     ap.add_argument('--threshold', type=float, default=0.5)
+    ap.add_argument('--dataset-dir', default='data/dataset',
+                    help='used only to resolve the model class-id mapping')
     args = ap.parse_args()
 
     detector = None
+    person_id, forklift_id = PERSON_ID, FORKLIFT_ID
     if args.weights:
-        from src.detector import RFDetrDetector
+        from src.detector import RFDetrDetector, model_class_ids
         detector = RFDetrDetector(weights=args.weights, threshold=args.threshold)
-        print(f'using fine-tuned detector: {args.weights}\n')
+        # A fine-tuned model predicts 0-based contiguous ids, NOT the dataset's
+        # COCO category ids. Skipping this silently yields zero events.
+        ids = model_class_ids(args.dataset_dir)
+        person_id, forklift_id = ids['person'], ids['forklift']
+        print(f'using fine-tuned detector: {args.weights}')
+        print(f'model class ids: person={person_id} forklift={forklift_id}\n')
     else:
         print('using ground-truth boxes (perfect detector)\n')
 
@@ -117,7 +125,7 @@ def main():
                       outdir=os.path.join(args.outdir, f'{clip.run_id[:12]}_{cam}'),
                       use_pose=False,            # no pose: Rules 5 and 1 are N/A here
                       write_video=False, save_evidence=False, verbose=False,
-                      person_id=PERSON_ID, forklift_id=FORKLIFT_ID,
+                      person_id=person_id, forklift_id=forklift_id,
                       video_label=label)
             with open(res['events_path']) as f:
                 evs = [json.loads(line) for line in f]

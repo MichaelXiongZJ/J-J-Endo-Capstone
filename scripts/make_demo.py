@@ -16,7 +16,7 @@ import os
 import cv2
 
 from scripts.sdg_common import SDGClip, find_runs
-from src.detector import RFDetrDetector
+from src.detector import RFDetrDetector, model_class_ids
 from src.run_pipeline import run
 
 PERSON_ID, FORKLIFT_ID = 2, 1
@@ -74,6 +74,8 @@ def main():
     ap.add_argument('--outdir', default='outputs/demo')
     ap.add_argument('--clips', type=int, default=4)
     ap.add_argument('--threshold', type=float, default=0.5)
+    ap.add_argument('--dataset-dir', default='data/dataset',
+                    help='used only to resolve the model class-id mapping')
     ap.add_argument('--pose', action='store_true',
                     help='enable RTMPose (Rules 5 and 1). Off by default: these '
                          'reach trucks have no cab, so Rule 5 cannot fire and '
@@ -89,6 +91,10 @@ def main():
         print(f'  {dur:5.1f}s violation  {label[:52]} ({cam})')
 
     detector = RFDetrDetector(weights=args.weights, threshold=args.threshold)
+    # Fine-tuned models predict 0-based contiguous ids, not dataset category ids.
+    ids = model_class_ids(args.dataset_dir)
+    person_id, forklift_id = ids['person'], ids['forklift']
+    print(f'model class ids: person={person_id} forklift={forklift_id}')
     os.makedirs(args.outdir, exist_ok=True)
 
     parts, total_events = [], 0
@@ -97,7 +103,7 @@ def main():
         sub = os.path.join(args.outdir, f'{clip.run_id[:12]}_{cam}')
         res = run(clip.video, calib, detector, outdir=sub,
                   use_pose=args.pose, write_video=True, save_evidence=True,
-                  person_id=PERSON_ID, forklift_id=FORKLIFT_ID,
+                  person_id=person_id, forklift_id=forklift_id,
                   video_label=label, verbose=False)
         parts.append(os.path.join(sub, 'videos', 'annotated.mp4'))
         total_events += res['events']
