@@ -46,6 +46,16 @@ class SDGClip:
         self.cams = load_jsonl(os.path.join(run_dir, f'{camera}.camera_params.jsonl'))
         self.width, self.height = self.cams[0]['renderProductResolution']
 
+        # Forklift boxes recovered from instance segmentation by
+        # scripts/sdg_extract_forklifts.py, for scenarios whose
+        # object_detection.jsonl omits the vehicle (box_pickup). Absent for
+        # nearmiss, where the vehicle is already annotated.
+        self.extra_forklifts = {}
+        extra = os.path.join(run_dir, f'{camera}.forklift_boxes.json')
+        if os.path.exists(extra):
+            with open(extra) as f:
+                self.extra_forklifts = {int(k): v for k, v in json.load(f).items()}
+
     def __len__(self):
         return min(len(self.dets), len(self.cams))
 
@@ -90,6 +100,15 @@ class SDGClip:
                     t = np.asarray(bb3['transform'], dtype=np.float64).reshape(4, 4)
                     world_xy = (float(t[3, 0]), float(t[3, 1]))   # row-vector: translation in row 3
                 out.append((cls, box, world_xy))
+
+        # Segmentation-recovered forklifts carry no world position: they come from
+        # a pixel mask, not a simulator transform. None is correct here — the
+        # Rule 3 ground-truth generator skips agents without one rather than
+        # inventing a position.
+        fk = self.extra_forklifts.get(frame)
+        if fk:
+            x1, y1, x2, y2 = fk['box']
+            out.append(('forklift', (float(x1), float(y1), float(x2), float(y2)), None))
         return out
 
     def world_to_pixel(self, pts_xyz, frame=0):

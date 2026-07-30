@@ -76,7 +76,20 @@ def main():
     ap.add_argument('--truth', default='data/validation/sdg_ground_truth.json')
     ap.add_argument('--outdir', default='outputs/sdg_validation')
     ap.add_argument('--tolerance', type=float, default=2.0)
+    ap.add_argument('--weights', default=None,
+                    help='fine-tuned RF-DETR checkpoint. Omit to use the '
+                         'simulator ground-truth boxes (the perfect-detector '
+                         'ceiling); supply it for the honest end-to-end number')
+    ap.add_argument('--threshold', type=float, default=0.5)
     args = ap.parse_args()
+
+    detector = None
+    if args.weights:
+        from src.detector import RFDetrDetector
+        detector = RFDetrDetector(weights=args.weights, threshold=args.threshold)
+        print(f'using fine-tuned detector: {args.weights}\n')
+    else:
+        print('using ground-truth boxes (perfect detector)\n')
 
     if not os.path.exists(args.truth):
         raise SystemExit(f'{args.truth} missing — run scripts.sdg_calibration first')
@@ -99,7 +112,8 @@ def main():
             if not os.path.exists(calib):
                 skipped.append(label)
                 continue
-            res = run(clip.video, calib, GroundTruthDetector(clip, stride),
+            res = run(clip.video, calib,
+                      detector or GroundTruthDetector(clip, stride),
                       outdir=os.path.join(args.outdir, f'{clip.run_id[:12]}_{cam}'),
                       use_pose=False,            # no pose: Rules 5 and 1 are N/A here
                       write_video=False, save_evidence=False, verbose=False,
@@ -120,7 +134,12 @@ def main():
             f.write(json.dumps(e) + '\n')
     print(f'\nmerged {len(all_events)} events -> {merged}')
 
-    print('\n=== Rule 3 with a PERFECT detector (ceiling on achievable accuracy) ===')
+    if args.weights:
+        print('\n=== Rule 3 END TO END with the fine-tuned detector ===')
+        print('Compare against the perfect-detector run: the gap between them is '
+              'attributable to detection, everything else is shared.')
+    else:
+        print('\n=== Rule 3 with a PERFECT detector (ceiling on achievable accuracy) ===')
     counts, fps, fns = score(all_events, truth, args.tolerance, rules={3})
     report(counts, fps, fns, targets=(3,))
 
