@@ -96,9 +96,24 @@ The §10 validation matrix is encoded as executable scenarios
 | Brief reach for a control | silent | pass |
 | Occluded low-confidence leg joints | silent | pass |
 
-What is **not** validated: RTMPose itself. Whether a real driver's joints are
-located accurately at warehouse camera distance, through a cab frame, is an
-empirical question no synthetic data here can answer.
+**Pose estimation partially de-risked.** RTMPose was run on warehouse workers at
+ceiling-camera distance (`outputs/pose_check.jpg`):
+
+| Clip | Person height | Valid keypoints |
+|---|---|---|
+| nearmiss ceiling_00 | 228 px | 17 / 17 |
+| nearmiss ceiling_00 | 356 px | 17 / 17 |
+| box_pickup cam_00 (crouching) | 190 px | 14 / 17 |
+| box_pickup cam_04 | 251 px | 17 / 17 |
+
+Skeletons land correctly on the bodies, including a crouching worker — a hard
+pose. So pose estimation is viable at these distances and the confidence gate
+behaves as designed.
+
+What is still **not** validated: RTMPose on *real* people, and on a driver seen
+*through a cab frame*, where the mast, overhead guard and seat back occlude the
+torso. Those are the conditions Rule 5 actually runs in, and no synthetic data
+here reproduces them.
 
 Why there is no data: **no SDG-Warehouse scenario contains a driver seated in a
 forklift.** The `nearmiss` vehicles are stand-on reach trucks with no cab; the
