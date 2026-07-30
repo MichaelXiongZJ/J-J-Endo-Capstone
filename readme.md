@@ -85,10 +85,25 @@ run per §4.2), replacing most of Phase 3's labeling effort.
 
 ### What it does not cover — read before trusting it
 
-1. **The vehicles are stand-on reach trucks with no enclosed cab**, not sit-down
-   counterbalance forklifts. So **Rule 5 cannot be exercised at all** here, and
-   the vehicle type sits uncomfortably close to the pallet-jack family J&J just
-   ruled out of scope. **Worth confirming with J&J.**
+1. **The vehicles are stand-on reach trucks with no enclosed cab**, not the
+   sit-down counterbalance forklifts J&J actually operates. So **Rule 5 cannot be
+   exercised at all** here, and the vehicle type sits uncomfortably close to the
+   pallet-jack family J&J ruled out of scope.
+
+   All four scenarios were checked, and **none supplies an annotated sit-down
+   forklift**:
+
+   | Scenario | Vehicle | Forklift annotated? |
+   |---|---|---|
+   | `nearmiss` | stand-on reach truck | yes — this is what we use |
+   | `box_pickup` | sit-down counterbalance forklift, hi-vis PPE | **no — `character` only** |
+   | `collision` | reach truck; parked forklift in background | reach truck only |
+   | `fire` | n/a | not useful (smoke/flame lighting) |
+
+   `box_pickup` is the trap: it looks perfect (correct forklift type, workers in
+   hard hats and hi-vis) but contains **zero forklift annotations**. Training on
+   it would teach the detector that J&J's actual vehicle is *background*, which is
+   worse than not using it — so it is deliberately not part of `data/dataset/`.
 2. **No annotated driver.** Every `character` is a pedestrian, so this data
    cannot validate driver association — which is load-bearing for Rules 3 and 5.
 3. **No walkways or phone use**, so Rules 4 and 1 are unexercised.

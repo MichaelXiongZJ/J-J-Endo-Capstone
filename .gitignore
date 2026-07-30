@@ -34,3 +34,4 @@ data/sdg/
 data/sdg_probe/
 data/calibration/sdg_*.json
 data/validation/sdg_ground_truth.json
+data/sdg_box_pickup/

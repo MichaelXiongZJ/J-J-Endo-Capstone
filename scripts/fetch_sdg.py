@@ -37,9 +37,26 @@ import tarfile
 import time
 
 REPO = 'datasets/nvidia/PhysicalAI-WorldModel-Synthetic-Warehouse-Operations-Scenes'
-SCENARIO = 'forklift_human_nearmiss'
-SHARD_FMT = 'nearmiss-artifacts-{:05d}.tar'
 WANTED_SUFFIXES = ('.rgb.mp4', '.object_detection.jsonl', '.camera_params.jsonl')
+
+# scenario -> (hf directory, shard filename prefix)
+#
+# Which one you want depends on the vehicle, and the vehicles differ:
+#   nearmiss   — stand-on REACH TRUCK, no cab. Stages Rule 3 proximity directly,
+#                but cannot exercise Rule 5 and is not J&J's vehicle type.
+#   box_pickup — sit-down COUNTERBALANCE forklift with seat, steering wheel and
+#                overhead guard, plus workers in hi-vis PPE. This is J&J's actual
+#                equipment, and routine operation makes it the source of NEGATIVE
+#                clips that Rule 3 precision needs.
+#   collision  — reach truck in the foreground, parked counterbalance forklift in
+#                the background.
+#   fire       — heavy smoke/flame lighting; not useful for our rules.
+SCENARIOS = {
+    'nearmiss':   ('forklift_human_nearmiss', 'nearmiss-artifacts-{:05d}.tar'),
+    'box_pickup': ('warehouse_box_pickup', 'box_pickup-artifacts-{:05d}.tar'),
+    'collision':  ('forklift_shelf_collision', 'forklift_collision-artifacts-{:05d}.tar'),
+    'fire':       ('warehouse_fire', 'fire-artifacts-{:05d}.tar'),
+}
 
 # Shard 0 is a 73 GiB outlier (the rest are ~4.6 GiB) and indexes very slowly.
 # Skip it unless explicitly asked for.
@@ -53,8 +70,9 @@ def parse_member(name):
     return run_id, camera, kind
 
 
-def fetch_shard(fs, shard_idx, out_root, cameras, dry_run=False):
-    path = f'{REPO}/artifacts/{SCENARIO}/{SHARD_FMT.format(shard_idx)}'
+def fetch_shard(fs, shard_idx, out_root, cameras, scenario='nearmiss', dry_run=False):
+    hf_dir, shard_fmt = SCENARIOS[scenario]
+    path = f'{REPO}/artifacts/{hf_dir}/{shard_fmt.format(shard_idx)}'
     print(f'\n=== shard {shard_idx} ===')
     t0 = time.time()
     with fs.open(path, 'rb') as f:
@@ -95,7 +113,12 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--shards', type=int, nargs='+', default=[1],
                     help='artifacts shard indices (each holds ~3 runs x 5 ceiling cameras)')
-    ap.add_argument('--out', default='data/sdg', help='output root')
+    ap.add_argument('--scenario', default='nearmiss', choices=sorted(SCENARIOS),
+                    help='box_pickup has the sit-down counterbalance forklift and '
+                         'hi-vis PPE (J&J actual equipment); nearmiss has a '
+                         'stand-on reach truck but stages Rule 3 proximity directly')
+    ap.add_argument('--out', default=None,
+                    help='output root (default data/sdg_<scenario>)')
     ap.add_argument('--cameras', nargs='*',
                     default=['ceiling_00', 'ceiling_01', 'ceiling_02',
                              'ceiling_03', 'ceiling_04'],
@@ -112,16 +135,18 @@ def main():
                   '--shards or edit ODD_SHARDS if you really want it.')
     shards = [s for s in args.shards if s not in ODD_SHARDS]
 
+    out_root = args.out or f'data/sdg_{args.scenario}'
     fs = HfFileSystem()
-    os.makedirs(args.out, exist_ok=True)
+    os.makedirs(out_root, exist_ok=True)
     total = 0
     for s in shards:
-        total += fetch_shard(fs, s, args.out, set(args.cameras), args.dry_run)
+        total += fetch_shard(fs, s, out_root, set(args.cameras), args.scenario,
+                             args.dry_run)
 
-    runs = [d for d in os.listdir(args.out)
-            if os.path.isdir(os.path.join(args.out, d))] if os.path.exists(args.out) else []
-    print(f'\nwrote {total} new files; {len(runs)} runs now under {args.out}/')
-    print('Next: python -m scripts.sdg_to_coco')
+    runs = [d for d in os.listdir(out_root)
+            if os.path.isdir(os.path.join(out_root, d))] if os.path.exists(out_root) else []
+    print(f'\nwrote {total} new files; {len(runs)} runs now under {out_root}/')
+    print(f'Next: python -m scripts.sdg_to_coco --root {out_root}')
 
 
 if __name__ == '__main__':
