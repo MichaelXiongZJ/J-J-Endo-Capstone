@@ -19,7 +19,7 @@ Be upfront about this — someone will ask.
 | Rule 4 — off walkway | no walkways in the footage | **fires** |
 | Driver association (`DRV` tag) | no driver in the footage | **visible** |
 | Rule 5 — body outside cab | blocked (no driver detected) | n/a (no cab) |
-| Rule 1 — phone use | nobody uses a phone | n/a |
+| Rule 1 — phone use | nobody uses a phone | **demo it yourself, see 1c** |
 
 Why the gaps are real rather than laziness:
 
@@ -29,7 +29,10 @@ Why the gaps are real rather than laziness:
   by construction, which is why it fires there.
 - **Rule 5 needs a driver.** The real clips are reach trucks with no cab, and the
   detector cannot see seated drivers anyway (see below).
-- **Rule 1 needs someone holding a phone to their ear.** No such footage exists.
+- **Rule 1 needs someone holding a phone to their ear.** No such footage exists —
+  measured across 109 pose samples of warehouse workers, the closest anyone came
+  was a wrist-to-head ratio of 1.17 against a 0.6 threshold. But Rule 1 is the one
+  rule you can film yourself in a minute (§1c).
 
 The honest framing: *"we can demonstrate 2 of the 4 rules on the footage we have;
 the other two need staged clips, which is the next task."*
@@ -68,6 +71,42 @@ three things the real-footage reel cannot:
 It looks abstract because the scene is generated, and that is the point: every
 position is known exactly, so the events can be checked against arithmetic rather
 than judged by eye.
+
+## 1c. Rule 1 — film it yourself in a minute
+
+Rule 1 needs **no calibration, no forklift and no warehouse**. It works purely on
+body keypoints, so a laptop webcam and a phone are the whole rig. It is the only
+rule you can demonstrate end-to-end on the spot.
+
+Film about 40 seconds, one take:
+
+| # | Do this | Expected |
+|---|---|---|
+| 1 | Stand normally, arms down | silent |
+| 2 | Hold a phone to your ear ~5 s | **fires** |
+| 3 | Arms down | clears |
+| 4 | Scratch your head ~5 s | probably fires — see below |
+| 5 | Touch your ear briefly, under 2 s | silent (duration gate) |
+
+```bash
+python -m scripts.demo_rule1 --video my_clip.mp4
+# -> outputs/demo/rule1.mp4 + rule1_events.jsonl
+```
+
+The overlay shows the **live wrist-to-head ratio**, the threshold it is compared
+against, and the 2-second gate filling up — so a viewer watches the number cross
+the line and the counter run out before anything is reported. The rule never looks
+like a black box.
+
+**Step 4 is the point of the demo.** Rule 1 measures wrist-to-head distance
+normalised by shoulder width; it cannot see the phone. Scratching your head will
+probably fire, and that is the documented weakness (context.md §13.4), not a bug.
+Showing it deliberately is much stronger than being caught by it — and it explains
+why Rule 1 is the lowest-confidence rule of the four, and why precision, not
+recall, is the metric that matters.
+
+Verified on a control clip: a warehouse worker walking with arms down measures a
+ratio of 4.79 against the 0.60 threshold and correctly produces nothing.
 
 ## 2. Run it live in six seconds — best for technical audiences
 
