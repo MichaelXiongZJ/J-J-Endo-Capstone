@@ -123,7 +123,8 @@ into a scored false positive.
 
 ## Status
 
-See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps.
+See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps,
+and **[DEMO.md](DEMO.md)** for how to show the work to others.
 
 | Definition of Done (context.md §12) | State |
 |---|---|

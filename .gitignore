@@ -40,3 +40,5 @@ data/sdg_box_pickup/
 data/real/
 data/dataset_v2/
 data/dataset_v3/
+!outputs/web/
+!outputs/web/*.py
