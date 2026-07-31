@@ -202,6 +202,30 @@ footer { margin-top:64px; padding-top:20px; border-top:1px solid var(--line); co
   <figcaption>Frames from the 60-second demo reel. Orange = forklift, red = person, each with a persistent track ID. The red banner marks frames where Rule 3 fires. Distances are computed on the floor plane in metres, not in pixels.</figcaption>
 </figure>
 
+<h3>Which rules the footage can actually exercise</h3>
+<p class="prose">
+  The reel above shows Rule 3 only, and that is a property of the available footage
+  rather than of the system. Rule 4 needs walkway markings to calibrate against;
+  Rule 5 needs a driver in a cab; Rule 1 needs someone holding a phone. None of
+  that exists in the clips we could obtain.
+</p>
+<div class="scroll">
+<table>
+  <thead><tr><th>Rule</th><th>Real footage</th><th>Generated scene</th></tr></thead>
+  <tbody>
+    <tr><td>Rule 3 — proximity</td><td class="num" style="color:var(--ok)">fires</td><td class="num" style="color:var(--ok)">fires</td></tr>
+    <tr><td>Rule 4 — off walkway</td><td>no walkways marked</td><td class="num" style="color:var(--ok)">fires</td></tr>
+    <tr><td>Driver association</td><td>no driver present</td><td class="num" style="color:var(--ok)">visible</td></tr>
+    <tr><td>Rule 5 — body outside cab</td><td class="num bad">blocked</td><td>no cab in scene</td></tr>
+    <tr><td>Rule 1 — phone use</td><td>no phone use filmed</td><td>—</td></tr>
+  </tbody>
+</table>
+</div>
+<figure>
+  <img src="__RULES__" alt="Four frames of a generated warehouse scene: a yellow walkway outline, tracked people, and a banner reading VIOLATION rule(s): 3, 4.">
+  <figcaption>The generated scene exercises two rules at once — the banner reads <b>[3, 4]</b>. The yellow outline is the walkway: the pedestrian inside it is never flagged, the one outside it is. <b>id1 P DRV</b> is the driver, correctly identified as riding the vehicle and excluded from Rule 3 — without that, every driver would read as a pedestrian standing 0 m from a moving forklift, and the system would alarm constantly. It looks schematic because every position in it is known exactly, which is what lets the events be checked against arithmetic instead of judged by eye.</figcaption>
+</figure>
+
 <h3>Every violation is an explainable record</h3>
 <pre><span class="c">// one line of events.jsonl</span>
 { "rule": 3, "person_track": 0, "vehicle_track": 1,
@@ -294,7 +318,8 @@ def main():
     html = (HTML.replace('__DEMO__', img('demo'))
                 .replace('__POSE__', img('pose'))
                 .replace('__OURS__', img('ours'))
-                .replace('__COCO__', img('coco')))
+                .replace('__COCO__', img('coco'))
+                .replace('__RULES__', img('rules')))
     out = os.path.join(HERE, 'progress.html')
     with open(out, 'w', encoding='utf-8') as f:
         f.write(html)

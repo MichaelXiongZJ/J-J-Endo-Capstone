@@ -9,6 +9,31 @@ Private until you share it from the page's share menu.
 
 ---
 
+## Which rules each demo actually shows
+
+Be upfront about this — someone will ask.
+
+| | `demo.mp4` (real footage) | `rules3and4.mp4` (synthetic) |
+|---|---|---|
+| Rule 3 — proximity | **fires** | **fires** |
+| Rule 4 — off walkway | no walkways in the footage | **fires** |
+| Driver association (`DRV` tag) | no driver in the footage | **visible** |
+| Rule 5 — body outside cab | blocked (no driver detected) | n/a (no cab) |
+| Rule 1 — phone use | nobody uses a phone | n/a |
+
+Why the gaps are real rather than laziness:
+
+- **Rule 4 needs walkway polygons in floor metres.** The real clips have no marked
+  walkways to calibrate against, and the rule deliberately *skips* rather than
+  flagging every pedestrian when none is configured. The synthetic scene has one
+  by construction, which is why it fires there.
+- **Rule 5 needs a driver.** The real clips are reach trucks with no cab, and the
+  detector cannot see seated drivers anyway (see below).
+- **Rule 1 needs someone holding a phone to their ear.** No such footage exists.
+
+The honest framing: *"we can demonstrate 2 of the 4 rules on the footage we have;
+the other two need staged clips, which is the next task."*
+
 ## 1. The 60-second reel — best for any audience
 
 `outputs/demo/demo.mp4` — 1080p, six different warehouse scenes.
@@ -26,6 +51,23 @@ Just play it. Say what to look for:
 The one line worth saying out loud: **the distance test happens in floor metres,
 not pixels.** Two boxes 200 px apart can be 1 m or 20 m apart depending on depth,
 which is how projects like this usually go wrong.
+
+## 1b. The two-rule clip — when asked "does it do more than Rule 3?"
+
+`outputs/demo/rules3and4.mp4` — schematic rather than photoreal, but it shows
+three things the real-footage reel cannot:
+
+- the banner reads **`VIOLATION rule(s): [3, 4]`** — two rules at once
+- the **yellow polygon** is the walkway; the pedestrian inside it is never flagged,
+  the one outside it is
+- **`id1 P DRV`** — the driver, correctly identified as riding the vehicle and
+  correctly *excluded* from Rule 3. Without that, the driver would read as "a
+  pedestrian standing 0 m from a moving forklift" and the system would alarm
+  constantly
+
+It looks abstract because the scene is generated, and that is the point: every
+position is known exactly, so the events can be checked against arithmetic rather
+than judged by eye.
 
 ## 2. Run it live in six seconds — best for technical audiences
 
