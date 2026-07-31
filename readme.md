@@ -36,7 +36,7 @@ pip install -r requirements.txt
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 ```
 
-Verify: `python -m pytest -q` → 67 tests, no network or GPU needed.
+Verify: `python -m pytest -q` → 91 tests, no network or GPU needed.
 
 ## Synthetic data: NVIDIA PhysicalAI SDG-Warehouse
 
@@ -128,17 +128,23 @@ and **[DEMO.md](DEMO.md)** for how to show the work to others.
 
 | Definition of Done (context.md §12) | State |
 |---|---|
-| 1. Fine-tuned RF-DETR with measured mAP | **Done** — mAP50:95 0.967, forklift AP 0.979, person AP 0.891 |
+| 1. Fine-tuned RF-DETR with measured mAP | **Done** — mAP50:95 **0.820** on real CCTV (forklift 0.830, person 0.777) |
 | 2. Pipeline emitting `events.jsonl` + evidence frames | **Done** |
-| 3. Rules 3 and 5 validated at precision ≥ 0.8 | **Rule 3 done** (P=1.00, R=1.00 over 178 clips). **Rule 5: logic validated, no data** |
+| 3. Rules 3 and 5 validated at precision ≥ 0.8 | **Rule 3 done** (P=1.00, R=1.00 over 178 clips). **Rule 5 blocked** — see below |
 | 4. Rules 4 and 1 implemented | **Done**, unexercised on real data |
 | 5. Annotated demo video | **Done** — `outputs/demo/demo.mp4` |
 | 6. Write-up | **Done** — [RESULTS.md](RESULTS.md) |
 
-**The honest headline:** every number above is measured on synthetic footage, and
-**Rule 5 — the rule J&J cares most about — has no validation data**, because no
-SDG-Warehouse scenario contains a driver seated in a forklift. Closing that needs
-staged clips (§10), which is the top priority.
+**The honest headline:** the detector finds every forklift and **0 of 16 seated
+drivers**, because the training data labels pedestrians but not drivers, and an
+unlabeled object trains as background. Rule 5 identifies the driver and then
+checks their keypoints, so it has no input and **cannot function on real footage**
+— however sound its logic. RESULTS.md §0 has the detail; fixing the driver labels
+is the top priority.
+
+Later models were trained on real CCTV, so the numbers above are no longer purely
+synthetic. Earlier synthetic-only runs scored ~0.96 against validation drawn from
+the same simulator as their training data; treat those as optimistic.
 
 The rule logic is verified end-to-end against a synthetic clip with exact
 arithmetic ground truth (`scripts/make_synthetic_clip.py`). **That is a
