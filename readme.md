@@ -8,6 +8,12 @@ violation events**; J&J's engineer owns deployment, alerting, and dashboards.
 [`rule3-rule5-prototype-implementation.md`](rule3-rule5-prototype-implementation.md)
 (how). This file is just how to run the code.
 
+| If you want to… | Read |
+|---|---|
+| **Add your own detection module** | **[INTEGRATION.md](INTEGRATION.md)** — plug-in points, a worked speed-rule example, and the exact training datasets |
+| Show the work to someone | [DEMO.md](DEMO.md) |
+| See measured results and limitations | [RESULTS.md](RESULTS.md) |
+
 ## The core idea
 
 We do **not** train a model to recognise "unsafe behaviour" — no such dataset
@@ -124,7 +130,8 @@ into a scored false positive.
 ## Status
 
 See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps,
-and **[DEMO.md](DEMO.md)** for how to show the work to others.
+**[DEMO.md](DEMO.md)** for how to show the work to others, and
+**[INTEGRATION.md](INTEGRATION.md)** for adding your own module.
 
 | Definition of Done (context.md §12) | State |
 |---|---|
