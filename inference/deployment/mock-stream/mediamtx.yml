@@ -1,0 +1,12 @@
+rtspTransports: [tcp]
+
+paths:
+  demo:
+    runOnDemand: >-
+      ffmpeg -nostdin -re -stream_loop -1 -i /videos/demo.mp4
+      -map 0:v:0 -an
+      -vf "scale=1280:-2"
+      -c:v libx264 -preset ultrafast -tune zerolatency
+      -crf 23 -g 30 -bf 0
+      -f rtsp rtsp://localhost:$RTSP_PORT/$MTX_PATH
+    runOnDemandRestart: yes
