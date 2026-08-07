@@ -1,0 +1,4 @@
+opencv-python-headless
+rfdetr
+flask
+prometheus-client
