@@ -35,7 +35,18 @@ class CameraGeometry:
                 f"{config_path}: findHomography failed. Points are probably "
                 "collinear — pick floor points that span an area, not a line."
             )
-        self.walkways = [Path(p) for p in cfg.get("walkways", [])]
+        self.walkways = []
+        for i, poly in enumerate(cfg.get("walkways", [])):
+            if len(poly) < 3:
+                raise ValueError(
+                    f"{config_path}: walkway {i} must have ≥3 points, got {len(poly)}."
+                )
+            for j, pt in enumerate(poly):
+                if len(pt) != 2 or not all(isinstance(c, (int, float)) for c in pt):
+                    raise ValueError(
+                        f"{config_path}: walkway {i}, point {j} must be [x, y] numeric."
+                    )
+            self.walkways.append(Path(poly))
         self.vehicle_length_m = cfg.get("vehicle_length_m", 2.7)
 
     def to_floor(self, x, y):
