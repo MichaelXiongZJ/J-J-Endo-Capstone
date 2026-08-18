@@ -130,29 +130,15 @@ def run(video, calib, detector, worker_detector=None, outdir='outputs', device='
             people.append(obj)
         # Run phone/PPE detector on each tracked person's crop.
         for person in people:
-            crop = crop_person(
-                bgr,
-                person.box,
-                padding=0.15
-            )
+            crop = crop_person(bgr, person.box, padding=0.15)
 
-            # Temporary debug output: verify person crops look correct.
             if frame_idx < 30:
-                os.makedirs(
-                    f"{outdir}/person_crops",
-                    exist_ok=True
-                )
-
-                cv2.imwrite(
-                    f"{outdir}/person_crops/"
-                    f"frame_{frame_idx}_person_{person.track_id}.jpg",
-                    crop
-                )
+                os.makedirs(f'{outdir}/person_crops', exist_ok=True)
+                cv2.imwrite(f'{outdir}/person_crops/frame_{frame_idx}_person_{person.track_id}.jpg', crop)
 
             if worker_detector is not None:
-                person.worker_detections = (
-                    worker_detector.predict(crop)
-                )
+                person.worker_detections = worker_detector.predict(crop)
+                print(f'track={person.track_id}', person.worker_detections)
         for i in range(len(dets)):
             if int(dets.class_id[i]) != forklift_id:
                 continue
@@ -190,10 +176,15 @@ def run(video, calib, detector, worker_detector=None, outdir='outputs', device='
                 label = f'id{tid} {kind}' + (' DRV' if tid in driver_ids else '')
 
                 if cid == person_id and tid in person_by_track:
-                    phones = person_by_track[tid].worker_detections.get('phone', [])
+                    wd = person_by_track[tid].worker_detections
+                    phones, helmets, vests = wd.get('phone', []), wd.get('helmet', []), wd.get('vest', [])
+
                     if phones:
                         label += f" PHONE {max(p['confidence'] for p in phones):.2f}"
-
+                    if helmets:
+                        label += " HELMET"
+                    if vests:
+                        label += " VEST"
                 labels.append(label)
 
             out = lab_ann.annotate(box_ann.annotate(bgr.copy(), dets), dets, labels)
