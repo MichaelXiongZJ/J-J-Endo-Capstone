@@ -42,3 +42,7 @@ data/dataset_v2/
 data/dataset_v3/
 !outputs/web/
 !outputs/web/*.py
+
+# Local model weights
+models/phone/*.pth
+models/phone/*.ckpt

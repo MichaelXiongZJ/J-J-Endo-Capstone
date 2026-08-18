@@ -10,7 +10,7 @@ never retraining.
 """
 
 from collections import defaultdict, deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -55,6 +55,7 @@ class TrackedObject:
     box: tuple                      # (x1, y1, x2, y2) pixels
     floor_xy: tuple                 # (x, y) metres
     keypoints: np.ndarray = None    # (17,3) for persons, else None
+    worker_detections: dict = field(default_factory=dict)
 
 
 # ---------- generic helpers ----------
