@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-1. [Installation](#1-installation)
+1. [Installation & Model Download](#1-installation--model-download)
 2. [Camera Calibration](#2-camera-calibration)
 3. [Running the Pipeline](#3-running-the-pipeline)
 4. [Output Format](#4-output-format)
@@ -16,7 +16,7 @@
 
 ---
 
-## 1. Installation
+## 1. Installation & Model Download
 
 **Requirements:** Python 3.10+, NVIDIA GPU with CUDA 12.4 (CPU execution supported with `--no-pose`).
 
@@ -27,13 +27,23 @@ pip install -r requirements.txt
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124  # skip on Colab
 ```
 
-Verify the installation:
+### 1.1 Download Pre-trained Weights
+
+Download the fine-tuned model checkpoint from Google Drive:
+
+- **Download Link:** [Google Drive — rfdetr_real model weights](https://drive.google.com/drive/folders/1B_2d5snX6I_cCeWpgXrXi5YknPJyPV-C?usp=sharing)
+- Place the downloaded `checkpoint_best_ema.pth` file into the repository at:
+  ```
+  models/rfdetr_real/checkpoint_best_ema.pth
+  ```
+
+### 1.2 Verify Installation
+
+Run the automated test suite to confirm the environment is configured correctly:
 
 ```bash
 python -m pytest -q   # 91 tests, ~6 s
 ```
-
-Model weights (`models/rfdetr_real/checkpoint_best_ema.pth`) and test footage reside in the project repository / shared data directory.
 
 ---
 

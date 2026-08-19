@@ -52,6 +52,26 @@ def run_pose(frame_bgr, device="cuda"):
     ).astype(np.float32)
 
 
+def run_pose_roi(frame_bgr, bbox, device="cuda"):
+    """Run RTMPose on a cropped ROI (e.g. forklift box), mapping keypoints back to full-frame coords.
+
+    Provides a fallback for distant/seated drivers when full-frame pose or detector boxes miss them.
+    """
+    x1, y1, x2, y2 = map(int, bbox)
+    h_f, w_f = frame_bgr.shape[:2]
+    x1, y1 = max(0, x1), max(0, y1)
+    x2, y2 = min(w_f, x2), min(h_f, y2)
+    if x2 <= x1 or y2 <= y1:
+        return np.zeros((0, 17, 3), dtype=np.float32)
+    crop = frame_bgr[y1:y2, x1:x2]
+    kpts = run_pose(crop, device=device)
+    if len(kpts) > 0:
+        kpts = kpts.copy()
+        kpts[:, :, 0] += x1
+        kpts[:, :, 1] += y1
+    return kpts
+
+
 def valid(kpt, thresh=0.5):
     """ALWAYS gate on confidence. Occluded joints (driver's legs behind the cab)
     come back with LOW confidence and a GUESSED position — trusting them means

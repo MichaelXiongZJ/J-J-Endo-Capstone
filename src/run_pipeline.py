@@ -20,7 +20,7 @@ from trackers import ByteTrackTracker
 
 from src.events import EventAggregator
 from src.geometry import CameraGeometry
-from src.pose_utils import match_pose_to_boxes, run_pose
+from src.pose_utils import match_pose_to_boxes, run_pose, run_pose_roi
 from src.rules import (CFG, MotionState, Rule1State, Rule4State, Rule5State,
                        TrackedObject, check_rule3, find_driver)
 
@@ -115,9 +115,12 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
         # 2. pose (BGR!), matched back onto OUR tracked person boxes.
         person_idx = [i for i in range(len(dets)) if int(dets.class_id[i]) == person_id]
         pose_by_box = {}
-        if use_pose and person_idx:
-            person_boxes = [tuple(map(float, dets.xyxy[i])) for i in person_idx]
-            pose_by_box = match_pose_to_boxes(run_pose(bgr, device), person_boxes)
+        all_kpts = []
+        if use_pose:
+            all_kpts = run_pose(bgr, device)
+            if person_idx:
+                person_boxes = [tuple(map(float, dets.xyxy[i])) for i in person_idx]
+                pose_by_box = match_pose_to_boxes(all_kpts, person_boxes)
 
         # 3. unify into TrackedObjects with floor positions.
         people, vehicles = [], []
@@ -140,7 +143,12 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
         driver_ids, hits = set(), []
         driver_of = {}
         for v in vehicles:
-            d = find_driver(v, people, motion)
+            d = find_driver(v, people, motion, all_kpts=all_kpts if use_pose else None)
+            if d is None and use_pose:
+                # Secondary fallback: crop-and-pose directly on forklift ROI
+                roi_kpts = run_pose_roi(bgr, v.box, device=device)
+                if len(roi_kpts) > 0:
+                    d = find_driver(v, people, motion, all_kpts=roi_kpts)
             if d:
                 driver_ids.add(d.track_id)
                 driver_of[v.track_id] = d.track_id

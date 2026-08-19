@@ -128,7 +128,7 @@ class MotionState:
 
 # ---------- driver association (feeds Rules 3 AND 5) ----------
 
-def find_driver(vehicle, people, motion: MotionState):
+def find_driver(vehicle, people, motion: MotionState, all_kpts=None):
     """The driver is the person who MOVES WITH the vehicle — not merely the one
     whose box overlaps it. Containment alone misfires: a pedestrian occluded
     BEHIND a forklift appears fully 'inside' its box.
@@ -149,6 +149,26 @@ def find_driver(vehicle, people, motion: MotionState):
             score = 1.0 if dv < CFG['DRIVER_VEL_MATCH_MS'] else 0.0
         if score > best_score:
             best, best_score = p, score
+
+    if best is None and all_kpts is not None:
+        # Fallback: Object detector missed the seated driver as a person box.
+        # Match candidate keypoints whose torso/head sits inside the vehicle box.
+        def torso_center(kp):
+            pts = [kp[i][:2] for i in (NOSE, L_SHOULDER, R_SHOULDER) if valid(kp[i], CFG['KPT_CONF'])]
+            return np.mean(pts, axis=0) if pts else None
+
+        for kp in all_kpts:
+            c = torso_center(kp)
+            if c is not None and point_in_box(c, vehicle.box):
+                pid = people[0].class_id if people else 2
+                best = TrackedObject(
+                    track_id=100000 + vehicle.track_id,
+                    class_id=pid,
+                    box=vehicle.box,
+                    floor_xy=vehicle.floor_xy,
+                    keypoints=kp
+                )
+                break
     return best
 
 
