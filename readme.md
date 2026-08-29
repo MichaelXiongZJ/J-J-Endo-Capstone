@@ -4,17 +4,12 @@ Computer vision detection of J&J Life-Saving Rule violations from warehouse
 camera footage. We deliver **models and detection logic that emit structured
 violation events**; J&J's engineer owns deployment, alerting, and dashboards.
 
-**Read [`context.md`](context.md) first** (what and why), then
-[`rule3-rule5-prototype-implementation.md`](rule3-rule5-prototype-implementation.md)
-(how). This file is just how to run the code.
+**Read [`HANDOFF.md`](HANDOFF.md)** (or [`HANDOFF.pdf`](HANDOFF.pdf)) for the deployment and operational guide, and [`RESULTS.md`](RESULTS.md) for evaluation metrics. This file details setup and execution.
 
 | If you want to… | Read |
 |---|---|
-| **Deploy & Operate the System** | **[HANDOFF.md](HANDOFF.md)** / **[USER_GUIDE.md](USER_GUIDE.md)** — technical handoff, calibration, CLI options, webhooks & troubleshooting |
-| **See Results & Achievements Overview** | **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** — executive summary, benchmark numbers, homography & rule metrics |
-| **Add your own detection module** | **[INTEGRATION.md](INTEGRATION.md)** — plug-in points, a worked speed-rule example, and the exact training datasets |
-| Show the work to someone | [DEMO.md](DEMO.md) |
-| See measured results and limitations | [RESULTS.md](RESULTS.md) |
+| **Deploy & Operate the System** | **[HANDOFF.md](HANDOFF.md)** ([PDF](HANDOFF.pdf)) / **[USER_GUIDE.md](USER_GUIDE.md)** — technical handoff, calibration, CLI options, webhooks & troubleshooting |
+| **See Results & Evaluation** | **[RESULTS.md](RESULTS.md)** — measured metrics, benchmark numbers, homography & rule evaluations |
 
 ## The core idea
 
@@ -131,11 +126,9 @@ into a scored false positive.
 
 ## Status
 
-See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps,
-**[DEMO.md](DEMO.md)** for how to show the work to others, and
-**[INTEGRATION.md](INTEGRATION.md)** for adding your own module.
+See **[RESULTS.md](RESULTS.md)** for measured numbers, limitations and next steps, and **[HANDOFF.md](HANDOFF.md)** for deployment instructions.
 
-| Definition of Done (context.md §12) | State |
+| Target | State |
 |---|---|
 | 1. Fine-tuned RF-DETR with measured mAP | **Done** — mAP50:95 **0.820** on real CCTV (forklift 0.830, person 0.777) |
 | 2. Pipeline emitting `events.jsonl` + evidence frames | **Done** |

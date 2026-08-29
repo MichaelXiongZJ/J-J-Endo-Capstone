@@ -299,7 +299,7 @@ Duration parameters (`_MIN_S`) provide temporal filtering to prevent transient f
 
 ## 8. Adding a New Rule Module
 
-Refer to [INTEGRATION.md](INTEGRATION.md) for detailed architectural patterns and worked examples.
+Refer to [HANDOFF.md](HANDOFF.md) for architectural patterns and configuration details.
 
 ### Option A — Consume `events.jsonl` (External)
 

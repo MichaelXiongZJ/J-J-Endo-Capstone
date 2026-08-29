@@ -47,6 +47,7 @@ outputs/web/*
 
 # PDF documents
 *.pdf
+!HANDOFF.pdf
 
 # Local model weights
 models/phone/*.pth

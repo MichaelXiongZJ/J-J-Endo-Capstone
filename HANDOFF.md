@@ -1,8 +1,6 @@
-# Sponsor Handoff & Technical Deployment Guide
+# Handoff & Deployment Guide
 
 **Project:** Warehouse Safety Computer Vision System  
-**Objective:** Automated detection of warehouse safety rule violations from overhead CCTV camera feeds, delivering structured event logs and real-time webhook alerts.
-
 ---
 
 ## 1. System Overview & Deliverables
