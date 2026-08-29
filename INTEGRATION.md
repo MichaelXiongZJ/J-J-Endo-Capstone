@@ -93,6 +93,7 @@ class TrackedObject:
     box: tuple           # (x1, y1, x2, y2) in PIXELS
     floor_xy: tuple      # (x, y) in METRES on the warehouse floor
     keypoints: np.ndarray = None   # (17, 3) = x, y, confidence — persons only, None if pose is off
+    worker_detections: dict = field(default_factory=dict)  # {'phone': [...], 'helmet': [...], 'vest': [...]}
 ```
 
 `floor_xy` is the important one. It is the box's bottom-centre projected through

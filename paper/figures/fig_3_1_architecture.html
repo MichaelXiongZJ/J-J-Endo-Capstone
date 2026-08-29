@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>System Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; font-family: "Segoe UI", Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px 20px; }
+  .diagram { max-width: 1100px; width: 100%; }
+  .title { text-align: center; font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 30px; }
+  .pipeline { display: flex; align-items: stretch; }
+  .stage { flex: 1; }
+  .stage-box { border: 2px solid #2c3e50; border-radius: 8px; padding: 14px 12px; text-align: center; background: #fff; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+  .stage-box.input { background: #eaf2f8; border-color: #2980b9; }
+  .stage-box.perception { background: #fdf2e9; border-color: #e67e22; }
+  .stage-box.tracking { background: #f4ecf7; border-color: #8e44ad; }
+  .stage-box.calibration { background: #e8f8f5; border-color: #1abc9c; }
+  .stage-box.rules { background: #fdedec; border-color: #e74c3c; }
+  .stage-box.output { background: #eafaf1; border-color: #27ae60; }
+  .stage-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7f8c8d; margin-bottom: 6px; }
+  .stage-title { font-size: 14px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .stage-detail { font-size: 11px; color: #555; line-height: 1.5; }
+  .model { font-weight: 600; color: #2c3e50; }
+  .arrow-cell { display: flex; align-items: center; justify-content: center; width: 40px; min-width: 40px; flex-shrink: 0; }
+  .arrow-cell svg { width: 30px; height: 20px; }
+  .sub-row { display: flex; gap: 6px; margin-top: 8px; }
+  .sub-item { flex: 1; font-size: 10px; padding: 4px 6px; border-radius: 4px; font-weight: 600; text-align: center; }
+  .sub-item.det { background: #fdebd0; color: #b7950b; }
+  .sub-item.pose { background: #f5eef8; color: #7d3c98; }
+  .annotations { margin-top: 24px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+  .annotation { font-size: 11px; color: #666; display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid; }
+  .dot.d1 { background: #eaf2f8; border-color: #2980b9; }
+  .dot.d2 { background: #fdf2e9; border-color: #e67e22; }
+  .dot.d3 { background: #f4ecf7; border-color: #8e44ad; }
+  .dot.d4 { background: #e8f8f5; border-color: #1abc9c; }
+  .dot.d5 { background: #fdedec; border-color: #e74c3c; }
+  .dot.d6 { background: #eafaf1; border-color: #27ae60; }
+  .flow-label { font-size: 9px; color: #999; text-align: center; margin-top: 2px; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="diagram">
+  <div class="title">Figure 3.1 -- End-to-End System Architecture</div>
+  <div class="pipeline">
+    <div class="stage">
+      <div class="stage-box input"><div class="stage-label">Stage 1</div><div class="stage-title">Video Input</div><div class="stage-detail">CCTV camera feed<br>(recorded clips)</div></div>
+      <div class="flow-label">BGR frames @ 10 fps</div>
+    </div>
+    <div class="arrow-cell"><svg viewBox="0 0 30 20"><polygon points="0,4 20,4 20,0 30,10 20,20 20,16 0,16" fill="#bdc3c7"/></svg></div>
+    <div class="stage" style="flex:1.5">
+      <div class="stage-box perception"><div class="stage-label">Stage 2</div><div class="stage-title">Neural Perception</div><div class="stage-detail"><span class="model">RF-DETR</span> -- person + forklift boxes<br><span class="model">RTMPose</span> -- 17 body keypoints</div><div class="sub-row"><div class="sub-item det">Object Detection</div><div class="sub-item pose">Pose Estimation</div></div></div>
+      <div class="flow-label">bboxes + keypoints + confidence</div>
+    </div>
+    <div class="arrow-cell"><svg viewBox="0 0 30 20"><polygon points="0,4 20,4 20,0 30,10 20,20 20,16 0,16" fill="#bdc3c7"/></svg></div>
+    <div class="stage">
+      <div class="stage-box tracking"><div class="stage-label">Stage 3</div><div class="stage-title">Cross-Frame Tracking</div><div class="stage-detail"><span class="model">ByteTrack</span><br>Persistent IDs<br>Velocity estimation</div></div>
+      <div class="flow-label">tracked objects + velocities</div>
+    </div>
+    <div class="arrow-cell"><svg viewBox="0 0 30 20"><polygon points="0,4 20,4 20,0 30,10 20,20 20,16 0,16" fill="#bdc3c7"/></svg></div>
+    <div class="stage">
+      <div class="stage-box calibration"><div class="stage-label">Stage 4</div><div class="stage-title">Spatial Calibration</div><div class="stage-detail">Homography (H)<br>Pixels to floor meters<br>Ground-contact point</div></div>
+      <div class="flow-label">floor positions in meters</div>
+    </div>
+    <div class="arrow-cell"><svg viewBox="0 0 30 20"><polygon points="0,4 20,4 20,0 30,10 20,20 20,16 0,16" fill="#bdc3c7"/></svg></div>
+    <div class="stage" style="flex:1.3">
+      <div class="stage-box rules"><div class="stage-label">Stage 5</div><div class="stage-title">Rule Geometry Engine</div><div class="stage-detail">Deterministic arithmetic<br>Duration gates<br>Driver association</div></div>
+      <div class="flow-label">violation events</div>
+    </div>
+    <div class="arrow-cell"><svg viewBox="0 0 30 20"><polygon points="0,4 20,4 20,0 30,10 20,20 20,16 0,16" fill="#bdc3c7"/></svg></div>
+    <div class="stage">
+      <div class="stage-box output"><div class="stage-label">Output</div><div class="stage-title">Event Logging</div><div class="stage-detail">events.jsonl<br>Face-blurred evidence<br>Annotated video</div></div>
+    </div>
+  </div>
+  <div class="annotations">
+    <div class="annotation"><div class="dot d1"></div>Video ingestion</div>
+    <div class="annotation"><div class="dot d2"></div>Neural inference (trained)</div>
+    <div class="annotation"><div class="dot d3"></div>Algorithmic tracking</div>
+    <div class="annotation"><div class="dot d4"></div>Geometric transform</div>
+    <div class="annotation"><div class="dot d5"></div>Deterministic rules</div>
+    <div class="annotation"><div class="dot d6"></div>Structured output</div>
+  </div>
+</div>
+</body>
+</html>

@@ -10,6 +10,8 @@ violation events**; J&J's engineer owns deployment, alerting, and dashboards.
 
 | If you want to… | Read |
 |---|---|
+| **Deploy & Operate the System** | **[USER_GUIDE.md](USER_GUIDE.md)** ([PDF version](USER_GUIDE.pdf)) — complete setup, calibration, CLI options, webhooks & troubleshooting |
+| **See Results & Achievements Overview** | **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** — executive summary, benchmark numbers, homography & rule metrics |
 | **Add your own detection module** | **[INTEGRATION.md](INTEGRATION.md)** — plug-in points, a worked speed-rule example, and the exact training datasets |
 | Show the work to someone | [DEMO.md](DEMO.md) |
 | See measured results and limitations | [RESULTS.md](RESULTS.md) |
@@ -175,7 +177,8 @@ python -m src.geometry data/calibration/cam1.json --pair 412 880 1180 875 6.0
 python -m src.run_pipeline \
   --video data/raw_videos/test_clip.mp4 \
   --calib data/calibration/cam1.json \
-  --weights models/rfdetr_v1/checkpoint_best_ema.pth \
+  --weights models/rfdetr_real/checkpoint_best_ema.pth \
+  --worker-weights models/phone/checkpoint_best_ema.pth \
   --person-id 2 --forklift-id 1
 
 # 5. Score against staged-clip ground truth
@@ -194,20 +197,28 @@ python -m pytest tests/test_pipeline_synthetic.py -q
 
 ```
 src/
-  extract_frames.py   frame sampling for labeling
-  geometry.py         homography: pixels -> floor metres  (CameraGeometry)
-  detector.py         RF-DETR wrapper + StubDetector for testing
-  pose_utils.py       RTMPose via rtmlib; COCO-17 keypoints
-  rules.py            all four rules + driver association; thresholds in CFG
-  events.py           per-frame hits -> one event per episode
-  run_pipeline.py     video in -> annotated video + events.jsonl
+  extract_frames.py       frame sampling for labeling
+  geometry.py             homography: pixels -> floor metres (CameraGeometry)
+  detector.py             RF-DETR wrapper + StubDetector for testing
+  worker_detector.py      worker phone & PPE detector / crop extraction
+  pose_utils.py           RTMPose via rtmlib; COCO-17 keypoints & ROI fallback
+  rules.py                all four rules + driver association; thresholds in CFG
+  events.py               per-frame hits -> one event per episode
+  run_pipeline.py         video in -> annotated video + events.jsonl
 scripts/
-  make_synthetic_clip.py     synthetic scene with exact ground truth
-  discover_class_ids.py      read class IDs from COCO JSON
+  make_synthetic_clip.py  synthetic scene with exact ground truth
+  smoke_test_pipeline.py  end-to-end synthetic worker detection smoke test
+  discover_class_ids.py   read class IDs from COCO JSON
   pick_calibration_points.py click floor points -> calibration JSON
-  score_events.py            §10 precision/recall scorer
-notebooks/  01_baseline (zero-shot), 02_train (fine-tune)  — Colab, T4 only
-tests/      67 tests
+  demo_rule5.py           Rule 5 visual demo generator
+  score_rule5.py          Rule 5 empirical accuracy scorer
+  generate_all_evidences.py generate presentation-grade visual evidence assets
+  score_events.py         §10 precision/recall scorer
+  md_to_pdf.py            compile USER_GUIDE.md to USER_GUIDE.pdf
+models/
+  phone/README.md         worker phone & PPE detection model documentation
+notebooks/  01_baseline (zero-shot), 02_train (fine-tune) — Colab, T4 only
+tests/      91 tests (8 test suites)
 ```
 
 **All tuning is editing `CFG` in [`src/rules.py`](src/rules.py)** — thresholds and

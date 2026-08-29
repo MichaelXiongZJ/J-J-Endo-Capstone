@@ -1,3 +1,7 @@
+"""Writes USER_GUIDE.md to the project root."""
+import pathlib
+
+GUIDE = """\
 # User Guide — Warehouse Safety CV (J&J Capstone)
 
 ## Table of Contents
@@ -22,7 +26,7 @@
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate    # Windows — use source .venv/bin/activate on Linux/macOS
+.venv\\Scripts\\activate    # Windows — use source .venv/bin/activate on Linux/macOS
 pip install -r requirements.txt
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124  # skip on Colab
 ```
@@ -31,7 +35,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 Download the fine-tuned model checkpoint from Google Drive:
 
-- **Download Link:** [Google Drive — rfdetr_real model weights](https://drive.google.com/drive/folders/1B_2d5snX6I_cCeWpgXrXi5YknPJyPV-C?usp=sharing)
+- **Download Link:** [Google Drive — rfdetr_real model weights](https://drive.google.com/drive/folders/YOUR_MODEL_FOLDER_ID?usp=sharing)
 - Place the downloaded `checkpoint_best_ema.pth` file into the repository at:
   ```
   models/rfdetr_real/checkpoint_best_ema.pth
@@ -110,11 +114,10 @@ python -m scripts.discover_class_ids data/dataset
 ### 3.2 Execute
 
 ```bash
-python -m src.run_pipeline \
-  --video data/raw_videos/clip.mp4 \
-  --calib data/calibration/cam1.json \
-  --weights models/rfdetr_real/checkpoint_best_ema.pth \
-  --worker-weights models/phone/checkpoint_best_ema.pth \
+python -m src.run_pipeline \\
+  --video data/raw_videos/clip.mp4 \\
+  --calib data/calibration/cam1.json \\
+  --weights models/rfdetr_real/checkpoint_best_ema.pth \\
   --person-id 2 --forklift-id 1
 ```
 
@@ -125,7 +128,6 @@ python -m src.run_pipeline \
 | `--video` | *(required)* | Path to input video file |
 | `--calib` | *(required)* | Path to camera calibration JSON |
 | `--weights` | *(required)* | Path to `checkpoint_best_ema.pth`, or `"coco"` for pretrained baseline |
-| `--worker-weights` | `None` | Path to worker phone/PPE RF-DETR checkpoint (`src/worker_detector.py`) |
 | `--outdir` | `outputs` | Destination root directory for `events/` and `videos/` |
 | `--device` | `cuda` | Compute device (`cuda` or `cpu`) |
 | `--person-id` | `2` | Category ID for "person" in detection model |
@@ -198,10 +200,10 @@ When a violation episode concludes, the pipeline publishes the complete event re
 Supply the webhook URL and optional auth token via CLI flags:
 
 ```bash
-python -m src.run_pipeline \
-  --video data/raw_videos/clip.mp4 \
-  --calib data/calibration/cam1.json \
-  --webhook-url https://api.yourdomain.com/v1/warehouse-events \
+python -m src.run_pipeline \\
+  --video data/raw_videos/clip.mp4 \\
+  --calib data/calibration/cam1.json \\
+  --webhook-url https://api.yourdomain.com/v1/warehouse-events \\
   --webhook-token YOUR_BEARER_TOKEN
 ```
 
@@ -329,7 +331,6 @@ class TrackedObject:
     box: tuple              # (x1, y1, x2, y2) bounding box in pixel coordinates
     floor_xy: tuple         # (x, y) ground contact point projected in floor metres
     keypoints: np.ndarray   # (17, 3) keypoint array [x, y, conf] for persons (None for vehicles)
-    worker_detections: dict # {'phone': [...], 'helmet': [...], 'vest': [...]} from worker detector
 ```
 
 ---
@@ -395,3 +396,8 @@ python -m scripts.score_events --events outputs/events/events.jsonl --truth data
 ---
 
 *For questions, contact the capstone team.*
+"""
+
+out = pathlib.Path(__file__).parent.parent / "USER_GUIDE.md"
+out.write_text(GUIDE, encoding="utf-8")
+print(f"Written {out} ({len(GUIDE):,} bytes)")
