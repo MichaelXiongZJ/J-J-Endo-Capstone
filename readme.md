@@ -10,7 +10,7 @@ violation events**; J&J's engineer owns deployment, alerting, and dashboards.
 
 | If you want to… | Read |
 |---|---|
-| **Deploy & Operate the System** | **[USER_GUIDE.md](USER_GUIDE.md)** ([PDF version](USER_GUIDE.pdf)) — complete setup, calibration, CLI options, webhooks & troubleshooting |
+| **Deploy & Operate the System** | **[USER_GUIDE.md](USER_GUIDE.md)** — complete setup, calibration, CLI options, webhooks & troubleshooting |
 | **See Results & Achievements Overview** | **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** — executive summary, benchmark numbers, homography & rule metrics |
 | **Add your own detection module** | **[INTEGRATION.md](INTEGRATION.md)** — plug-in points, a worked speed-rule example, and the exact training datasets |
 | Show the work to someone | [DEMO.md](DEMO.md) |
@@ -214,7 +214,6 @@ scripts/
   score_rule5.py          Rule 5 empirical accuracy scorer
   generate_all_evidences.py generate presentation-grade visual evidence assets
   score_events.py         §10 precision/recall scorer
-  md_to_pdf.py            compile USER_GUIDE.md to USER_GUIDE.pdf
 models/
   phone/README.md         worker phone & PPE detection model documentation
 notebooks/  01_baseline (zero-shot), 02_train (fine-tune) — Colab, T4 only

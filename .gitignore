@@ -40,8 +40,13 @@ data/sdg_box_pickup/
 data/real/
 data/dataset_v2/
 data/dataset_v3/
+# Web report outputs
 !outputs/web/
+outputs/web/*
 !outputs/web/*.py
+
+# PDF documents
+*.pdf
 
 # Local model weights
 models/phone/*.pth
