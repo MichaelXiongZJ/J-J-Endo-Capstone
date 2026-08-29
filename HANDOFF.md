@@ -125,13 +125,17 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
 
 ### Pre-trained Model Checkpoints
 
-Download model weights from the designated project repository and place them into the respective directories:
+Model binary checkpoints exceed GitHub file size limits and are hosted on Google Drive:
+
+* **Download Link:** [Google Drive — Trained Model Weights](https://drive.google.com/drive/folders/1B_2d5snX6I_cCeWpgXrXi5YknPJyPV-C?usp=sharing)
+
+Place the downloaded checkpoints into the respective directories:
 
 1. **Primary Detector (`rfdetr_real`):**
-   * Path: `models/rfdetr_real/checkpoint_best_ema.pth`
+   * Destination Path: `models/rfdetr_real/checkpoint_best_ema.pth`
    * Target classes: `0 = person`, `1 = forklift`
 2. **Worker Safety Detector (`phone` / PPE):**
-   * Path: `models/phone/checkpoint_best_ema.pth` (optional)
+   * Destination Path: `models/phone/checkpoint_best_total.pth` (optional)
    * Target classes: `0 = phone`, `1 = face`
 
 ### Verification
