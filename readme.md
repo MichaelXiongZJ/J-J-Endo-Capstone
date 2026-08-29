@@ -10,7 +10,7 @@ violation events**; J&J's engineer owns deployment, alerting, and dashboards.
 
 | If you want to… | Read |
 |---|---|
-| **Deploy & Operate the System** | **[USER_GUIDE.md](USER_GUIDE.md)** — complete setup, calibration, CLI options, webhooks & troubleshooting |
+| **Deploy & Operate the System** | **[HANDOFF.md](HANDOFF.md)** / **[USER_GUIDE.md](USER_GUIDE.md)** — technical handoff, calibration, CLI options, webhooks & troubleshooting |
 | **See Results & Achievements Overview** | **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** — executive summary, benchmark numbers, homography & rule metrics |
 | **Add your own detection module** | **[INTEGRATION.md](INTEGRATION.md)** — plug-in points, a worked speed-rule example, and the exact training datasets |
 | Show the work to someone | [DEMO.md](DEMO.md) |
