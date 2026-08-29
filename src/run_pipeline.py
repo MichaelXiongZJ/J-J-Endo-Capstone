@@ -23,6 +23,7 @@ from src.geometry import CameraGeometry
 from src.pose_utils import match_pose_to_boxes, run_pose, run_pose_roi
 from src.rules import (CFG, MotionState, Rule1State, Rule4State, Rule5State,
                        TrackedObject, check_rule3, find_driver)
+from src.worker_detector import (WorkerSafetyDetector, crop_person)
 
 # From §4.4 — read these from your dataset's _annotations.coco.json, never from
 # memory. Roboflow sometimes inserts a dummy category at index 0, shifting
@@ -30,7 +31,7 @@ from src.rules import (CFG, MotionState, Rule1State, Rule4State, Rule5State,
 PERSON_ID, FORKLIFT_ID = 2, 1
 
 
-def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSON_ID,
+def run(video, calib, detector, worker_detector=None, outdir='outputs', device='cuda', person_id=PERSON_ID,
         forklift_id=FORKLIFT_ID, use_pose=True, max_frames=None, write_video=True,
         threshold=0.5, save_evidence=True, verbose=True, video_label=None):
     """Core loop, decoupled from argument parsing so tests can drive it directly.
@@ -130,6 +131,17 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
                                 geom.floor_position(box))
             obj.keypoints = pose_by_box.get(local)
             people.append(obj)
+        # Run phone/PPE detector on each tracked person's crop.
+        for person in people:
+            crop = crop_person(bgr, person.box, padding=0.15)
+
+            if frame_idx < 30:
+                os.makedirs(f'{outdir}/person_crops', exist_ok=True)
+                cv2.imwrite(f'{outdir}/person_crops/frame_{frame_idx}_person_{person.track_id}.jpg', crop)
+
+            if worker_detector is not None:
+                person.worker_detections = worker_detector.predict(crop)
+                print(f'track={person.track_id}', person.worker_detections)
         for i in range(len(dets)):
             if int(dets.class_id[i]) != forklift_id:
                 continue
@@ -163,12 +175,26 @@ def run(video, calib, detector, outdir='outputs', device='cuda', person_id=PERSO
         active = agg.add(hits, t, bgr)
 
         if writer:
+            person_by_track = {p.track_id: p for p in people}
             labels = []
+
             for i in range(len(dets)):
-                tid = int(dets.tracker_id[i])
-                cid = int(dets.class_id[i])
+                tid, cid = int(dets.tracker_id[i]), int(dets.class_id[i])
                 kind = 'P' if cid == person_id else ('F' if cid == forklift_id else '?')
-                labels.append(f'id{tid} {kind}' + (' DRV' if tid in driver_ids else ''))
+                label = f'id{tid} {kind}' + (' DRV' if tid in driver_ids else '')
+
+                if cid == person_id and tid in person_by_track:
+                    wd = person_by_track[tid].worker_detections
+                    phones, helmets, vests = wd.get('phone', []), wd.get('helmet', []), wd.get('vest', [])
+
+                    if phones:
+                        label += f" PHONE {max(p['confidence'] for p in phones):.2f}"
+                    if helmets:
+                        label += " HELMET"
+                    if vests:
+                        label += " VEST"
+                labels.append(label)
+
             out = lab_ann.annotate(box_ann.annotate(bgr.copy(), dets), dets, labels)
             if active:
                 cv2.putText(out, f'VIOLATION rule(s): {sorted(active)}', (30, 60),
@@ -202,12 +228,17 @@ def main():
     ap.add_argument('--no-pose', action='store_true',
                     help='skip pose; disables Rules 5 and 1, ~3x faster')
     ap.add_argument('--max-frames', type=int, default=None)
+    ap.add_argument('--worker-weights', default=None, help='path to phone/PPE RF-DETR checkpoint')
     args = ap.parse_args()
 
     from src.detector import RFDetrDetector
+    from src.worker_detector import WorkerSafetyDetector
     detector = RFDetrDetector(weights=None if args.weights == 'coco' else args.weights,
                               threshold=args.threshold)
-    run(args.video, args.calib, detector, outdir=args.outdir, device=args.device,
+    worker_detector = None
+    if args.worker_weights:
+        worker_detector = WorkerSafetyDetector(weights=args.worker_weights, threshold=args.threshold)
+    run(args.video, args.calib, detector, worker_detector=worker_detector, outdir=args.outdir, device=args.device,
         person_id=args.person_id, forklift_id=args.forklift_id,
         use_pose=not args.no_pose, max_frames=args.max_frames, threshold=args.threshold)
 
